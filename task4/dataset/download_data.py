@@ -79,12 +79,14 @@ def download_file(result_dir, filename):
             os.remove(fpath)
         raise
 
+    # youtube-dl error, file often removed
     except (ExtractorError, DownloadError) as e:
         if os.path.exists(tmp_filename):
             os.remove(tmp_filename)
 
         return [filename, str(e)]
 
+    # multiprocessing can give this error
     except IndexError as e:
         if os.path.exists(tmp_filename):
             os.remove(tmp_filename)
@@ -94,9 +96,13 @@ def download_file(result_dir, filename):
 
 
 def download(csv_file, result_dir, n_jobs=1, chunk_size=10):
+    if not os.path.exists("tmp"):
+        os.mkdir("tmp")
+
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
 
+    # read metadata file and get only one filename once
     df = pd.read_csv(csv_file, header=0, sep='\t')
     filenames = df["filename"].drop_duplicates()
 
