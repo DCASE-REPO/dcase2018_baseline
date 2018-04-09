@@ -2,6 +2,9 @@
 
 This repository contain a python script to retrieve audio files for DCASE2018 from youtube, the list of audio files and the annotations verified by the task organizers. For a detailed description of the task please visit [task 4 offcial page](http://dcase.community//challenge2018/task-large-scale-weakly-labeled-semi-supervised-sound-event-detection)
 
+# Commits:
+    - April, 9, 2018, 16:36 Removing Y7LDMN0g-M_k_370.000_380.000.wav file in unlabel_out_of_domain.csv. This file is empty.
+
 ## Download_data.py
 
 ### Dependencies
