@@ -1,0 +1,477 @@
+active_set: dcase2018_baseline_development
+
+sets:
+  - set_id: dcase2018_baseline_development
+    dataset:
+      method: baseline_development
+    learner:
+      method: crnn
+
+  - set_id: dcase2018_baseline_challenge_train
+    flow:
+      feature_extraction: true
+      feature_normalization: true
+      learning: true
+      testing: false
+      evaluation: false
+    dataset:
+      method: baseline_challenge_train
+    learner:
+      method: crnn
+
+  - set_id: dcase2018_baseline_challenge_test
+    flow:
+      feature_extraction: true
+      feature_normalization: false
+      learning: false
+      testing: true
+      evaluation: false
+    dataset:
+      method: baseline_challenge_test
+    learner:
+      method: crnn
+
+defaults:
+  flow:
+    feature_extraction: true
+    feature_normalization: true
+    learning: true
+    testing: true
+    evaluation: true
+
+  path:
+    dataset: dataset/
+
+    application:
+      base: baseline/task4
+      feature_extractor: features
+      feature_normalizer: normalization
+      learner: learner
+      recognizer: recognizer
+
+  dataset:
+    method: baseline_development
+
+  dataset_method_parameters:
+    baseline_development:
+      dataset: DCASE2018_Task4_DevelopmentSet
+      evaluation_mode: folds
+      fold_list: [1,2]
+
+    baseline_challenge_train:
+      dataset: DCASE2018_Task4_DevelopmentSet
+      evaluation_mode: folds
+      fold_list: [1,2]
+
+    baseline_challenge_test:
+      dataset: DCASE2018_Task4_EvaluationSet
+      evaluation_mode: folds
+      fold_list: [1,2]
+
+  feature_extractor:
+    method: mel
+    win_length_seconds: 0.04
+    hop_length_seconds: 0.02
+    fs: 44100
+    recipe: mel
+
+  feature_extractor_method_parameters:
+    mel:
+      spectrogram_type: magnitude
+      window_type: hamming_asymmetric
+      n_mels: 64
+      n_fft: 2048
+      fmin: 0
+      fmax: 22050
+      htk: false
+      normalize_mel_bands: false
+
+  feature_normalizer: &feature_normalizer
+    enable: true
+
+  feature_sequencer: &feature_sequencer
+   enable: true
+   sequence_length: 500 # 10 sec / 0.02
+   hop_length: 500
+   padding: zero
+   required_data_amount_per_segment: 0.1
+
+  feature_processing_chain:
+    - processor_name: dcase_util.processors.FeatureReadingProcessor
+
+    - processor_name: dcase_util.processors.NormalizationProcessor
+      init_parameters: *feature_normalizer
+
+    - processor_name: dcase_util.processors.SequencingProcessor
+      init_parameters: *feature_sequencer
+
+  learner_method_parameters:
+    crnn:
+      # general
+      random_seed: 0
+      keras_profile: deterministic # cuda0_fast
+      backend: tensorflow
+      device: cuda0 # "cpu"
+
+      # shared by both model of first pass and second pass
+      compile:
+        loss: binary_crossentropy
+        metrics:
+          - binary_accuracy
+
+      optimizer:
+          class_name: Adam
+          config:
+            lr: 0.001
+
+      model:
+        constants:
+          CONVOLUTION_FILTER: 64
+          CONVOLUTION_INIT: glorot_uniform
+          CONVOLUTION_BORDER_MODE: same
+
+          CONVOLUTION_TIME: 3
+          CONVOLUTION_FREQ: 3
+          CONVOLUTION_ACTIVATION: relu
+          CONVOLUTION_DROPOUT: 0.3
+          RECURRENT_DROPOUT: 0
+          DROPOUT: 0.3
+        ##############
+        # FIRST MODEL, learn weak labels
+        #############
+        first_pass:
+          validation_amount: 0.2
+          fit:
+            epochs: 100
+            batch_size: 16
+            shuffle: true
+
+          config:
+            - class_name: Reshape
+              config:
+                input_shape:
+                  - INPUT_SEQUENCE_LENGTH
+                  - INPUT_FREQUENCIES
+                target_shape:
+                  - INPUT_SEQUENCE_LENGTH
+                  - INPUT_FREQUENCIES
+                  - 1
+                name: input_layer
+            # CNN layer 1
+            # ====================================
+            # Convolution layer
+            - class_name: Conv2D
+              config:
+                filters: CONVOLUTION_FILTER
+                kernel_size:
+                  - CONVOLUTION_TIME
+                  - CONVOLUTION_FREQ
+                padding: CONVOLUTION_BORDER_MODE
+                kernel_initializer: CONVOLUTION_INIT
+
+            # Batch normalization
+            - class_name: BatchNormalization
+              config:
+                axis: -1
+
+            # Detection layer
+            - class_name: Activation
+              config:
+                activation: CONVOLUTION_ACTIVATION
+
+            # Pooling layer
+            - class_name: MaxPooling2D
+              config:
+                pool_size:
+                  - 1
+                  - 4
+
+            # Drop out layer
+            - class_name: Dropout
+              config:
+                rate: CONVOLUTION_DROPOUT
+
+            # CNN layer 2
+            # ====================================
+            # Convolution layer
+            - class_name: Conv2D
+              config:
+                filters: CONVOLUTION_FILTER
+                kernel_size:
+                  - CONVOLUTION_TIME
+                  - CONVOLUTION_FREQ
+                padding: CONVOLUTION_BORDER_MODE
+                kernel_initializer: CONVOLUTION_INIT
+
+            # Batch normalization
+            - class_name: BatchNormalization
+              config:
+                axis: -1
+
+            # Detection layer
+            - class_name: Activation
+              config:
+                activation: CONVOLUTION_ACTIVATION
+
+            # Pooling layer
+            - class_name: MaxPooling2D
+              config:
+                pool_size:
+                  - 1
+                  - 4
+
+            # Drop out layer
+            - class_name: Dropout
+              config:
+                rate: CONVOLUTION_DROPOUT
+
+            # CNN layer 3
+            # ====================================
+            # Convolution layer
+            - class_name: Conv2D
+              config:
+                filters: CONVOLUTION_FILTER
+                kernel_size:
+                  - CONVOLUTION_TIME
+                  - CONVOLUTION_FREQ
+                padding: CONVOLUTION_BORDER_MODE
+                kernel_initializer: CONVOLUTION_INIT
+
+            # Batch normalization
+            - class_name: BatchNormalization
+              config:
+                axis: -1
+
+            # Detection layer
+            - class_name: Activation
+              config:
+                activation: CONVOLUTION_ACTIVATION
+
+            # Pooling layer
+            - class_name: MaxPooling2D
+              config:
+                pool_size:
+                  - 1
+                  - 4
+
+            # Drop out layer
+            - class_name: Dropout
+              config:
+                rate: CONVOLUTION_DROPOUT
+
+            # Reshape
+            # ====================================
+            - class_name: Reshape
+              config:
+                target_shape:
+                 - INPUT_SEQUENCE_LENGTH
+                 - CONVOLUTION_FILTER
+
+            # Bidirectional GRU
+            # ====================================
+            - class_name: GRU
+              wrapper: Bidirectional
+              config:
+                units: 64
+                return_sequences: true
+                recurrent_dropout: RECURRENT_DROPOUT
+                dropout: DROPOUT
+
+            # Dense layer
+            # ====================================
+            - class_name: Dense
+              wrapper: TimeDistributed
+              config:
+                units: NB_CLASSES
+                activation: sigmoid
+
+            # Average on time axis to get a single label
+            - class_name: GlobalAveragePooling1D
+
+        ##############
+        # SECOND MODEL, learn strong labels
+        #############
+        second_pass:
+          # validation amount "weak" means taking weak data to validate model
+          # a float in [0, 1] is also accepted to get a pourcentage of all training data
+          validation_amount: "weak"
+          fit:
+            epochs: 100
+            batch_size: 128
+            shuffle: true
+
+          config:
+            # Same model as before, we just remove the last layer
+            - class_name: Reshape
+              config:
+                input_shape:
+                  - INPUT_SEQUENCE_LENGTH
+                  - INPUT_FREQUENCIES
+                target_shape:
+                  - INPUT_SEQUENCE_LENGTH
+                  - INPUT_FREQUENCIES
+                  - 1
+                name: input_layer
+            # CNN layer 1
+            # ====================================
+            # Convolution layer
+            - class_name: Conv2D
+              config:
+                filters: CONVOLUTION_FILTER
+                kernel_size:
+                  - CONVOLUTION_TIME
+                  - CONVOLUTION_FREQ
+                padding: CONVOLUTION_BORDER_MODE
+                kernel_initializer: CONVOLUTION_INIT
+
+            # Batch normalization
+            - class_name: BatchNormalization
+              config:
+                axis: -1
+
+            # Detection layer
+            - class_name: Activation
+              config:
+                activation: CONVOLUTION_ACTIVATION
+
+            # Pooling layer
+            - class_name: MaxPooling2D
+              config:
+                pool_size:
+                  - 1
+                  - 4
+
+            # Drop out layer
+            - class_name: Dropout
+              config:
+                rate: CONVOLUTION_DROPOUT
+
+            # CNN layer 2
+            # ====================================
+            # Convolution layer
+            - class_name: Conv2D
+              config:
+                filters: CONVOLUTION_FILTER
+                kernel_size:
+                  - CONVOLUTION_TIME
+                  - CONVOLUTION_FREQ
+                padding: CONVOLUTION_BORDER_MODE
+                kernel_initializer: CONVOLUTION_INIT
+
+            # Batch normalization
+            - class_name: BatchNormalization
+              config:
+                axis: -1
+
+            # Detection layer
+            - class_name: Activation
+              config:
+                activation: CONVOLUTION_ACTIVATION
+
+            # Pooling layer
+            - class_name: MaxPooling2D
+              config:
+                pool_size:
+                  - 1
+                  - 4
+
+            # Drop out layer
+            - class_name: Dropout
+              config:
+                rate: CONVOLUTION_DROPOUT
+
+            # CNN layer 3
+            # ====================================
+            # Convolution layer
+            - class_name: Conv2D
+              config:
+                filters: CONVOLUTION_FILTER
+                kernel_size:
+                  - CONVOLUTION_TIME
+                  - CONVOLUTION_FREQ
+                padding: CONVOLUTION_BORDER_MODE
+                kernel_initializer: CONVOLUTION_INIT
+
+            # Batch normalization
+            - class_name: BatchNormalization
+              config:
+                axis: -1
+
+            # Detection layer
+            - class_name: Activation
+              config:
+                activation: CONVOLUTION_ACTIVATION
+
+            # Pooling layer
+            - class_name: MaxPooling2D
+              config:
+                pool_size:
+                  - 1
+                  - 4
+
+            # Drop out layer
+            - class_name: Dropout
+              config:
+                rate: CONVOLUTION_DROPOUT
+
+
+            # Reshape
+            # ====================================
+            - class_name: Reshape
+              config:
+                target_shape:
+                 - INPUT_SEQUENCE_LENGTH
+                 - CONVOLUTION_FILTER
+
+            # Bidirectional GRU
+            # ====================================
+            - class_name: GRU
+              wrapper: Bidirectional
+              config:
+                units: 64
+                return_sequences: true
+                recurrent_dropout: RECURRENT_DROPOUT
+                dropout: DROPOUT
+
+            # Dense layer
+            # ====================================
+            - class_name: Dense
+              wrapper: TimeDistributed
+              config:
+                units: NB_CLASSES
+                activation: sigmoid
+
+      callbacks:
+        StopperCallback:
+          manual_update: true
+          monitor: val_macro_f_measure
+          initial_delay: 5
+          min_delta: 0.01 # be careful, means 1%
+          patience: 15
+          external_metric_labels:
+            val_macro_f_measure: val_macro_f_measure
+            tra_macro_f_measure: tra_macro_f_measure
+
+        StasherCallback:
+          manual_update: true
+          monitor: val_macro_f_measure
+          initial_delay: 5
+          external_metric_labels:
+            val_macro_f_measure: val_macro_f_measure
+            tra_macro_f_measure: tra_macro_f_measure
+
+        ProgressLoggerCallback:
+          external_metric_labels:
+            val_macro_f_measure: val_macro_f_measure
+            tra_macro_f_measure: tra_macro_f_measure
+          manual_update: true
+          processing_interval: 1
+
+  recognizer:
+    frame_binarization:
+      enable: true
+      binarization_type: global_threshold
+      threshold: 0.5
+    process_activity:
+      enable: true
+      window_length: 51
