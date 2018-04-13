@@ -16,7 +16,8 @@ import tensorflow as tf
 from keras import backend as K
 import keras
 
-from evaluation_measures import get_f_measure_by_class, event_based_evaluation, segment_based_evaluation
+#from evaluation_measures import get_f_measure_by_class, event_based_evaluation, segment_based_evaluation
+from evaluation_measures import get_f_measure_by_class, event_based_evaluation
 from Dataset_dcase2018 import DCASE2018_Task4_DevelopmentSet
 
 dcase_util.utils.setup_logging(logging_file='task4.log')
