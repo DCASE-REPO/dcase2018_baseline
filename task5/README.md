@@ -42,7 +42,7 @@ By default, the code is set to `development mode`. In development mode results a
 
 ### Feature/Machine Learning parameters
 
-The learner in the baseline system is based on a Neural Network architecture using convolutional and dense layers. As input, log mel-band energies are provided to the network for each microphone channel separately. The posterior probabilities for each microphone, of a particular sensor node under test, are averaged to obtain the final posterior probability. 
+During the recording campaign, data was measured simultaneously using multiple microphone arrays (nodes) each containing 4 microphones.  Hence, each domestic activity is recorded as many times as there were microphones.  The baseline system trains a single classifier model that takes a single channel as input.  Each parallel recording of a single activity is considered as a different example during training. The learner in the baseline system is based on a Neural Network architecture using convolutional and dense layers. As input, log mel-band energies are provided to the network for each microphone channel separately. In the prediction stage a single outcome is computed for each node by averaging the 4 model outcomes (posteriors) that were computed by evaluating the trained classifier model on all 4 microphones.
 
 The baseline system parameters are as follows:
 
