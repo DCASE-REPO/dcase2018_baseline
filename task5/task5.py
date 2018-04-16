@@ -16,6 +16,7 @@ import copy
 import argparse
 import textwrap
 import pickle
+
 from task5_utils import get_processing_chain, get_label_from_filename
 import sklearn.utils as skutils
 from sklearn.metrics import f1_score
@@ -174,7 +175,6 @@ def do_feature_extraction(db, param, log, overwrite=False):
             )
             # Extract features and store them into FeatureContainer, and save it to the disk
             feature_processing_chain.process(filename=audio_filename).save(filename=feature_filename)
-            a = feature_processing_chain.process(filename=audio_filename)
 
 # =====================================================================
 # Function: Get feature normalization params (µ,std)
@@ -438,7 +438,7 @@ def do_learning(db, folds, param, log, overwrite=False):
             log.line('Best performing model on epoch {epoch_best:d} with an F1-score of {Fscore:f}%'.format(epoch_best=epoch_best,Fscore=numpy.max(val_scores)*100), indent=2)
             # load best model
             model_fold_epoch_filename = os.path.join(param.get_path('path.application.learner'),'model_fold_{fold}_epoch_{epoch:d}.h5'.format(fold=fold,epoch=epoch_best))
-            keras.models.load_model(model_fold_epoch_filename)
+            keras_model = keras.models.load_model(model_fold_epoch_filename)
             # save best model
             keras_model.save(fold_model_filename)
 

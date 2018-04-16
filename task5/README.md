@@ -1,5 +1,4 @@
-# DCASE 2018 - Task 5, Monitoring of domestic activities based on multi-channel acoustics
-## Baseline system
+# DCASE 2018 - Task 5 - Baseline system
 
 Authors:
 
@@ -22,7 +21,7 @@ Getting started
 Baseline system description
 ==================
 
-This is the baseline system for the [Task 5 of the DCASE2018 challenge](http://dcase.community/challenge2018/task-monitoring-domestic-activities). The baseline system is intended to lower the hurtle to participate the DCASE challenge(s). It provides an entry-level approach which is simple but relatively close to the state of the art systems. High-end performance is left for the challenge participants to find.
+This is the baseline system for the [Task 5 of the DCASE2018 challenge](http://dcase.community/challenge2018/task-monitoring-domestic-activities). The baseline system is intended to lower the hurdle to participate the DCASE challenge(s). It provides an entry-level approach which is simple but relatively close to the state of the art systems. High-end performance is left for the challenge participants to find.
 
 Participants are allowed to build their system on top of the given baseline system. The system has all needed functionality for dataset handling, storing / accessing features and models, and evaluating the results, making the adaptation for one's needs rather easy. The baseline system is also a good starting point for entry level researchers.
 
@@ -42,7 +41,7 @@ By default, the code is set to `development mode`. In development mode results a
 
 ### Feature/Machine Learning parameters
 
-The learner in the baseline system is based on a Neural Network architecture using convolutional and dense layers. As input, log mel-band energies are provided to the network for each microphone channel seperately. The posterior probabilities for each microphone, of a particular sensor node under test, are averaged to obtain the final posterior probability. 
+The learner in the baseline system is based on a Neural Network architecture using convolutional and dense layers. As input, log mel-band energies are provided to the network for each microphone channel separately. The posterior probabilities for each microphone, of a particular sensor node under test, are averaged to obtain the final posterior probability. 
 
 The baseline system parameters are as follows:
 
@@ -50,7 +49,7 @@ The baseline system parameters are as follows:
 - Feature matrix: 
 	- 40 log mel-band energies in 501 successive frames (10 s)
 - Neural Network:
-	- Input data: 40x501 (each microphone channel is considered to be a seperate example)
+	- Input data: 40x501 (each microphone channel is considered to be a separate example for the learner)
 	- Architecture:
 		- 1D Convolutional layer (filters: 32, kernel size: 5, stride: 1, axis: time) + Batch Normalization + ReLU activation
 		- 1D Max Pooling (pool size: 5, stride: 5) + Dropout: 20%
@@ -62,12 +61,12 @@ The baseline system parameters are as follows:
 		- Optimizer: Adam (learning rate: 0.0001)
 		- Epochs: 500
 		- The dataset is randomly subsampled to match the size of the smallest class each epoch
-		- Batch size: 256 * 4 channels (each channel is considered as a different example)
+		- Batch size: 256 * 4 channels (each channel is considered as a different example for the learner)
 - Fusion: Output probabilities from the four microphones in a particular node under test are averaged to obtain the final posterior probability.
-- Model selection: The performance of the model is evaluated every 10 epochs on a validation subset (30% subsampled from the training set). The model with the highest macro-averaged F1-score is picked.
+- Model selection: The performance of the model is evaluated every 10 epochs on a validation subset (30% subsampled from the training set). The model with the highest Macro-averaged F1-score is picked.
 
 ### Baseline performance
-When running in development mode (`eval_mode = False`) the baseline system provides results for a 4-fold cross-validation setup. The table below shows the averaged `Macro-averaged F1-score` over these 4 folds.
+When running in development mode (`eval_mode = False`) the baseline system provides results for a 4-fold cross-validation setup. The table below shows the averaged `Macro-averaged F1-score` over these 4 folds. The F1-score is calculated for each class seperately and averaged over all classes to obtain the `Macro-averaged F1-score`. A full 10s multi-channel audio segment is considered to be one sample.
 
 <div class="table-responsive col-md-6">
 <table class="table table-striped">

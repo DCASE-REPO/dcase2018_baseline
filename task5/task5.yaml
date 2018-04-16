@@ -50,7 +50,7 @@ defaults:
     dataset: dataset_task5/
     log: log/
     application:
-      base: output/
+      base: output_task5/
       feature_extractor: features
       feature_normalizer: normalization
       learner: learner
@@ -61,10 +61,10 @@ defaults:
 
   dataset_method_parameters:
     baseline_development:
-      dataset: DCASE2018_Task5_DevelopmentSet_subset
+      dataset: DCASE2018_Task5_DevelopmentSet
       evaluation_mode: folds
     baseline_challenge_train:
-      dataset: DCASE2018_Task5_DevelopmentSet_subset
+      dataset: DCASE2018_Task5_DevelopmentSet
       evaluation_mode: full
     baseline_challenge_eval:
       dataset: DCASE2018_Task5_EvaluationSet
