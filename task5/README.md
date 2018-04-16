@@ -136,4 +136,4 @@ Changelog
 
 ## License
 
-This software is released under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+This software is released under the terms of the [MIT License](https://github.com/DCASE-REPO/dcase2018_baseline/blob/master/LICENSE).
