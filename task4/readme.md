@@ -1,6 +1,8 @@
 # DCASE2018 task4 baseline: Large-scale weakly labeled semi-supervised sound event detection in domestic environments
 
-This repository contains python scripts to execute the baseline
+This repository contains python scripts to execute the baseline.
+
+You can find discussion about the dcase challenge here: [dcase_discussions](https://groups.google.com/forum/#!forum/dcase-discussions)
 
 ## Dependencies
 
@@ -37,7 +39,7 @@ To get more information about the dataset and files, go to the [dataset folder](
 - `Dataset_dcase2018.py` contains the class dataset used in this baseline, it downloads data and produce meta_files usable in the baseline system
 - `task4_crnn.yaml` contains system parameters
 - `notebooks` folder is defined to contain codes or notebooks which can help other participants.
-**Do not hesitate to do pull request in this repository**
+**Do not hesitate to do pull request in this repository**. We can discuss about notebooks in this [discussion](https://groups.google.com/forum/#!topic/dcase-discussions/YVXRFtp0UXs).
 *(If you want to make changes in a notebook already in the repo, It is recommended to use: [nbdime](https://nbdime.readthedocs.io/en/latest/installing.html))*
 
 Here is a list of files produced by the baseline and their explanation:
