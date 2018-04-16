@@ -1,0 +1,4 @@
+dcase_util>=0.1.9
+keras>=2.1.5
+numpy>=1.9.2
+scikit-learn>=0.19.1
