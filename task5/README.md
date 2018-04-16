@@ -3,6 +3,7 @@
 Authors:
 
 - Gert Dekkers (<gert.dekkers@kuleuven.be>, <https://iiw.kuleuven.be/onderzoek/advise/People/Gert_Dekkers>)
+- Peter Karsmakers (<peter.karsmakers@kuleuven.be>,<https://iiw.kuleuven.be/onderzoek/advise/People/PeterKarsmakers>)
 - Toni Heittola (<toni.heittola@tut.fi>, <http://www.cs.tut.fi/~heittolt/>, <https://github.com/toni-heittola>)
 
 
