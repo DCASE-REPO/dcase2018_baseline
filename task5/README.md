@@ -3,7 +3,7 @@
 Authors:
 
 - Gert Dekkers (<gert.dekkers@kuleuven.be>, <https://iiw.kuleuven.be/onderzoek/advise/People/Gert_Dekkers>)
-- Peter Karsmakers (<peter.karsmakers@kuleuven.be>,<https://iiw.kuleuven.be/onderzoek/advise/People/PeterKarsmakers>)
+- Peter Karsmakers (<peter.karsmakers@kuleuven.be>, <https://iiw.kuleuven.be/onderzoek/advise/People/PeterKarsmakers>)
 - Toni Heittola (<toni.heittola@tut.fi>, <http://www.cs.tut.fi/~heittolt/>, <https://github.com/toni-heittola>)
 
 
@@ -53,15 +53,15 @@ The baseline system parameters are as follows:
 	- Input data: 40x501 (each microphone channel is considered to be a separate example for the learner)
 	- Architecture:
 		- 1D Convolutional layer (filters: 32, kernel size: 5, stride: 1, axis: time) + Batch Normalization + ReLU activation
-		- 1D Max Pooling (pool size: 5, stride: 5) + Dropout: 20%
+		- 1D Max Pooling (pool size: 5, stride: 5) + Dropout (rate: 20%)
 		- 1D Convolutional layer (filters, 64, kernel size: 3, stride: 1, axis: time) + Batch Normalization + ReLU activation
-		- 1D Global Max Pooling + Dropout: 20%
-		- Dense layer (neurons: 64) + ReLU activation + Dropout 20%
+		- 1D Global Max Pooling + Dropout (rate: 20%)
+		- Dense layer (neurons: 64) + ReLU activation + Dropout (rate: 20%)
 		- Softmax output layer (classes: 9)
 	- Learning:
 		- Optimizer: Adam (learning rate: 0.0001)
 		- Epochs: 500
-		- The dataset is randomly subsampled to match the size of the smallest class each epoch
+		- On each epoch, the training dataset is randomly subsampled so that the number of examples for each class match the size of the smallest class
 		- Batch size: 256 * 4 channels (each channel is considered as a different example for the learner)
 - Fusion: Output probabilities from the four microphones in a particular node under test are averaged to obtain the final posterior probability.
 - Model selection: The performance of the model is evaluated every 10 epochs on a validation subset (30% subsampled from the training set). The model with the highest Macro-averaged F1-score is picked.
