@@ -318,12 +318,17 @@ def do_learning(db, folds, param, log, overwrite=False):
 
             # -- data related -- #
             # Get validation files
-            training_files, validation_files = db.validation_split(
-                fold=fold,
-                split_type='balanced',
-                validation_amount=param.get_path('learner.parameters.validation_amount'),
-                verbose=True
-            )
+            validationsplit_fold_filename = os.path.join(param.get_path('path.application.learner'),'validationsplit_fold_{fold}.pickle'.format(fold=fold))
+            if not os.path.isfile(validationsplit_fold_filename):
+                training_files, validation_files = db.validation_split(
+                    fold=fold,
+                    split_type='balanced',
+                    validation_amount=param.get_path('learner.parameters.validation_amount'),
+                    verbose=True
+                )
+                with open(validationsplit_fold_filename, 'wb') as f: pickle.dump([training_files,validation_files], f)
+            else:
+                with open(validationsplit_fold_filename, "rb") as f: [training_files,validation_files] = pickle.load(f)  # load
 
             # get matching labels
             training_files, training_labels, validation_files, val_labels = get_label_from_filename(db.train(fold=fold), training_files, validation_files, param)
