@@ -129,8 +129,12 @@ When running in development mode (`eval_mode = False`) the baseline system provi
 
 Changelog
 =========
+#### 1.0.1 / 2018-04-16
 
-#### 1.0 / 2018-04-16
+* Added validation split saving for additional safety
+* Minor edits
+
+#### 1.0.0 / 2018-04-16
 
 * First public release
 
