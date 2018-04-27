@@ -7,7 +7,7 @@ You can find discussion about the dcase challenge here: [dcase_discussions](http
 ## Dependencies
 
 task4_crnn.py needs Python >= 2.7, dcase_util >= 0.1.9, tqdm >= 4.11.2, ffmpeg >= 2.8.11, tensorflow >= 1.6.0,
-keras >= 2.1.5, sed_eval >= 0.2.0
+keras >= 2.1.5, sed_eval >= 0.2.0, librosa >= 0.6.0
 
 A simplified installation procedure example is provide below for python 3.6 based Anconda distribution for Linux based system:
 1. [install Ananconda](https://www.anaconda.com/download/)
