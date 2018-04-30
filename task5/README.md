@@ -66,6 +66,8 @@ The baseline system parameters are as follows:
 - Fusion: Output probabilities from the four microphones in a particular node under test are averaged to obtain the final posterior probability.
 - Model selection: The performance of the model is evaluated every 10 epochs on a validation subset (30% subsampled from the training set). The model with the highest Macro-averaged F1-score is picked.
 
+The baseline system is build on [dcase_util](https://github.com/DCASE-REPO/dcase_util) toolbox. The machine learning part of the code in build on [Keras (v2.1.5)](https://keras.io/) while using [TensorFlow (v1.4.0)](https://www.tensorflow.org/) as backend.
+
 ### Baseline performance
 When running in development mode (`eval_mode = False`) the baseline system provides results for a 4-fold cross-validation setup. The table below shows the averaged `Macro-averaged F1-score` over these 4 folds. The F1-score is calculated for each class seperately and averaged over all classes to obtain the `Macro-averaged F1-score`. A full 10s multi-channel audio segment is considered to be one sample.
 
@@ -80,45 +82,45 @@ When running in development mode (`eval_mode = False`) the baseline system provi
     <tbody>
         <tr>
             <td>Absence</td>
-            <td>90.10 %</td>
+            <td>86.14 %</td>
         </tr>
         <tr>
             <td>Cooking</td>
-            <td>95.69 %</td>
+            <td>94.26 %</td>
         </tr>
         <tr>
             <td>Dishwashing</td>
-            <td>80.14 %</td>
+            <td>73.74 %</td>
         </tr>
         <tr>
             <td>Eating</td>
-            <td>84.91 %</td>
+            <td>85.47 %</td>
         </tr>
         <tr>
             <td>Other</td>
-            <td>48.93 %</td>
+            <td>40.41 %</td>
         </tr>  
         <tr>
             <td>Social activity</td>
-            <td>94.79 %</td>
+            <td>94.36 %</td>
         </tr>
         <tr>
             <td>Vacuum cleaning</td>
-            <td>99.53 %</td>
+            <td>99.16 %</td>
         </tr> 
         <tr>
             <td>Watching TV</td>
-            <td>99.53 %</td>
+            <td>99.52 %</td>
         </tr>
         <tr>
             <td>Working</td>
-            <td>87.32 %</td>
+            <td>81.62 %</td>
         </tr>                                                                 
     </tbody>
     <tfoot>
         <tr>
             <td><strong>Macro-averaged F1-score</strong></td>
-            <td><strong>86.77 %</strong></td>
+            <td><strong>83.85 %</strong></td>
         </tr>
     </tfoot>
 </table>
