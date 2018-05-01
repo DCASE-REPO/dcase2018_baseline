@@ -105,7 +105,7 @@ The system implements a convolutional neural network (CNN) based approach, where
 #### Neural network
 
 - Input shape: 40 * 500 (10 seconds)
-- Architecture:
+- Architecture (definition for [task1A](https://github.com/DCASE-REPO/dcase2018_baseline/blob/master/task1/task1a.yaml#L141) and for [task1B](https://github.com/DCASE-REPO/dcase2018_baseline/blob/master/task1/task1b.yaml#L148)):
   - CNN layer #1
     - 2D Convolutional layer (filters: 32, kernel size: 7) + Batch normalization + ReLu activation
     - 2D max pooling (pool size: (5, 5)) + Dropout (rate: 30%)
@@ -237,91 +237,6 @@ Parameters files are YAML-formatted files, containing the following three blocks
 
 At the top level of the parameter dictionary there are parameter sections; depending on the name of the section, the parameters inside it are processed sometimes differently. Usually there is a main section (`feature_extractor`, and method parameter section (`feature_extractor_method_parameters`) which contains parameters for each possible method. When parameters are processed, the correct method parameters are copied from method parameter section to the main section under parameters. This allows having many methods ready parametrized and easily accessible.
 
-#### Customizing parameters
-
-Easiest way to run the system with custom parameters is to create a parameter file with a custom parameter set. For example, to have an MLP-based system called `minimal-mlp`, you would create the following `extra.yaml` parameter file:
-
-        sets:
-          - set_id: minimal-mlp
-            desciption: Minimal MLP system
-            data_processing_chain:
-              method: mean_aggregation_chain
-            data_processing_chain_method_parameters:
-              mean_aggregation_chain:
-                chain:
-                  - processor_name: dcase_util.processors.FeatureReadingProcessor
-                  - processor_name: dcase_util.processors.NormalizationProcessor
-                    init_parameters:
-                      enable: true
-                  - processor_name: dcase_util.processors.AggregationProcessor
-                    init_parameters:
-                      aggregation_recipe:
-                        - mean
-                      win_length_frames: 500
-                      hop_length_frames: 500
-                  - processor_name: dcase_util.processors.DataShapingProcessor
-                    init_parameters:
-                      axis_list:
-                        - time_axis
-                        - data_axis
-            learner:
-              method: mlp_mini
-            learner_method_parameters:
-              mlp_mini:
-                random_seed: 0
-                keras_profile: deterministic
-                backend: tensorflow
-                validation_set:
-                  validation_amount: 0.20
-                  balancing_mode: identifier_two_level_hierarchy
-                  seed: 0
-                data:
-                  data_format: channels_last
-                  target_format: same
-                model:
-                  config:
-                    - class_name: Dense
-                      config:
-                        units: 50
-                        kernel_initializer: uniform
-                        activation: relu
-                        input_shape:
-                          - FEATURE_VECTOR_LENGTH
-                    - class_name: Dropout
-                      config:
-                        rate: 0.2
-                    - class_name: Dense
-                      config:
-                        units: 50
-                        kernel_initializer: uniform
-                        activation: relu
-                    - class_name: Dropout
-                      config:
-                        rate: 0.2
-                    - class_name: Dense
-                      config:
-                        units: CLASS_COUNT
-                        kernel_initializer: uniform
-                        activation: softmax
-                compile:
-                  loss: categorical_crossentropy
-                  metrics:
-                    - categorical_accuracy
-                optimizer:
-                  class_name: Adam
-                fit:
-                  epochs: 50
-                  batch_size: 64
-                  shuffle: true
-                callbacks:
-                  StasherCallback:
-                    monitor: val_categorical_accuracy
-                    initial_delay: 25
-
-And run:
-
-    python task1a.py -p extra.yaml -s minimal-mlp
-
 #### Parameter hash
 
 Parameter hashes are MD5 hashes calculated for each parameter section. In order to make these hashes more robust, some pre-processing is applied before hash calculation:
@@ -330,10 +245,204 @@ Parameter hashes are MD5 hashes calculated for each parameter section. In order 
 - If section contains fields with value `False`, these fields are excluded from the parameter hash calculation. This will enable to add new flag parameters without changing the hash. Define the new flag such that the previous behaviour is happening when this field is set to false.
 - All `non_hashable_fields` fields are excluded from the parameter hash calculation. These fields are set when `dcase_util.containers.AppParameterContainer` is constructed, and they usually are fields used to print various values to the console. These fields do not change the system output to be saved onto disk, and hence they are excluded from hash.
 
+
+## Extending the baseline
+
+Easiest way to extend the baseline system is by modifying system parameters. To do so one needs to create a parameter file with a custom parameter set, and run system with this parameter file.
+
+**Example 1**
+
+In this example, one creates MLP based system. Data processing chain is replaced with a chain which calculated mean over 500 feature vectors. Learner is replaced with a new model definition. Parameter file `extra.yaml`: 
+        
+    active_set: minimal-mlp
+    sets:
+      - set_id: minimal-mlp
+        description: Minimal MLP system
+        data_processing_chain:
+          method: mean_aggregation_chain
+        data_processing_chain_method_parameters:
+          mean_aggregation_chain:
+            chain:
+              - processor_name: dcase_util.processors.FeatureReadingProcessor
+              - processor_name: dcase_util.processors.NormalizationProcessor
+                init_parameters:
+                  enable: true
+              - processor_name: dcase_util.processors.AggregationProcessor
+                init_parameters:
+                  aggregation_recipe:
+                    - mean
+                  win_length_frames: 500
+                  hop_length_frames: 500
+              - processor_name: dcase_util.processors.DataShapingProcessor
+                init_parameters:
+                  axis_list:
+                    - time_axis
+                    - data_axis
+        learner:
+          method: mlp_mini
+        learner_method_parameters:
+          mlp_mini:
+            random_seed: 0
+            keras_profile: deterministic
+            backend: tensorflow
+            validation_set:
+              validation_amount: 0.20
+              balancing_mode: identifier_two_level_hierarchy
+              seed: 0
+            data:
+              data_format: channels_last
+              target_format: same
+            model:
+              config:
+                - class_name: Dense
+                  config:
+                    units: 50
+                    kernel_initializer: uniform
+                    activation: relu
+                    input_shape:
+                      - FEATURE_VECTOR_LENGTH
+                - class_name: Dropout
+                  config:
+                    rate: 0.2
+                - class_name: Dense
+                  config:
+                    units: 50
+                    kernel_initializer: uniform
+                    activation: relu
+                - class_name: Dropout
+                  config:
+                    rate: 0.2
+                - class_name: Dense
+                  config:
+                    units: CLASS_COUNT
+                    kernel_initializer: uniform
+                    activation: softmax
+            compile:
+              loss: categorical_crossentropy
+              metrics:
+                - categorical_accuracy
+            optimizer:
+              class_name: Adam
+            fit:
+              epochs: 50
+              batch_size: 64
+              shuffle: true
+            callbacks:
+              StasherCallback:
+                monitor: val_categorical_accuracy
+                initial_delay: 25
+
+Command to run the system:
+
+    python task1a.py -p extra.yaml
+
+**Example 2**
+
+In this example, one slightly modifies the baseline system to have smaller network. Learner is replaced with modified model definition. Since `cnn` learner method is overloaded, only a subset of the parameters needs to be defined. However, the model config (network definition) has to be redefined fully as list parameters cannot be overloaded partly. Parameter file `extra.yaml`: 
+        
+    active_set: baseline-minified
+    sets:
+      - set_id: baseline-minified
+        description: Minified DCASE2018 baseline
+        learner_method_parameters:
+          cnn:
+            model:
+              constants:
+                CONVOLUTION_KERNEL_SIZE: 3            
+        
+              config:
+                - class_name: Conv2D
+                  config:
+                    input_shape:
+                      - FEATURE_VECTOR_LENGTH   # data_axis
+                      - INPUT_SEQUENCE_LENGTH   # time_axis
+                      - 1                       # sequence_axis
+                    filters: 8
+                    kernel_size: CONVOLUTION_KERNEL_SIZE
+                    padding: CONVOLUTION_BORDER_MODE
+                    kernel_initializer: CONVOLUTION_INIT
+                    data_format: DATA_FORMAT
+                - class_name: Activation
+                  config:
+                    activation: CONVOLUTION_ACTIVATION
+                - class_name: MaxPooling2D
+                  config:
+                    pool_size:
+                      - 5
+                      - 5
+                    data_format: DATA_FORMAT
+                - class_name: Conv2D
+                  config:
+                    filters: 16
+                    kernel_size: CONVOLUTION_KERNEL_SIZE
+                    padding: CONVOLUTION_BORDER_MODE
+                    kernel_initializer: CONVOLUTION_INIT
+                    data_format: DATA_FORMAT
+                - class_name: Activation
+                  config:
+                    activation: CONVOLUTION_ACTIVATION
+                - class_name: MaxPooling2D
+                  config:
+                    pool_size:
+                      - 4
+                      - 100
+                    data_format: DATA_FORMAT
+                - class_name: Flatten      
+                - class_name: Dense
+                  config:
+                    units: 100
+                    kernel_initializer: uniform
+                    activation: relu    
+                - class_name: Dense
+                  config:
+                    units: CLASS_COUNT
+                    kernel_initializer: uniform
+                    activation: softmax                        
+            fit:
+                epochs: 100
+                                  
+Command to run the system:
+
+    python task1a.py -p extra.yaml
+
+
+**Example 3**
+
+In this example, multiple different setups are run in a sequence. Parameter file `extra.yaml`: 
+        
+    active_set: baseline-kernel3
+    sets:
+      - set_id: baseline-kernel3
+        description: DCASE2018 baseline with kernel 3
+        learner_method_parameters:
+            cnn:
+              model:
+                constants:
+                  CONVOLUTION_KERNEL_SIZE: 3
+              fit:
+                epochs: 100                    
+      - set_id: baseline-kernel5
+        description: DCASE2018 baseline with kernel 5
+        learner_method_parameters:
+            cnn:
+              model:
+                constants:
+                  CONVOLUTION_KERNEL_SIZE: 5
+              fit:
+                epochs: 100
+                
+Command to run the system:
+
+    python task1a.py -p extra.yaml -s baseline-kernel3,baseline-kernel5
+
+To see results:
+    
+    python task1.py --show_results
+
 Code
 ====
 
-The code is built on [dcase_util](https://github.com/DCASE-REPO/dcase_util) toolbox, see [manual for tutorials](https://dcase-repo.github.io/dcase_util/index.html). The machine learning part of the code in built on [Keras (v2.1.5)](https://keras.io/), using [TensorFlow (v1.4.0)](https://www.tensorflow.org/) as backend.
+The code is built on [dcase_util](https://github.com/DCASE-REPO/dcase_util) toolbox, see [manual for tutorials](https://dcase-repo.github.io/dcase_util/index.html). The machine learning part of the code in built on [Keras (v2.1.5)](https://keras.io/), using [TensorFlow (v1.7.0)](https://www.tensorflow.org/) as backend.
 
 ### File structure
 
