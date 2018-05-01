@@ -158,6 +158,7 @@ def handle_application_arguments(param, application_title='', version=''):
                 param_[section] = {}
 
         param_.log()
+        sys.exit(0)
 
     if args.dataset_path:
         # Make sure given path exists
