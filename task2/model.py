@@ -1,4 +1,6 @@
+import csv
 
+import numpy as np
 import tensorflow as tf
 
 slim = tf.contrib.slim
@@ -14,12 +16,12 @@ def define_cnn(features=None, hparams=None, training=False):
                       stride=1, padding='SAME'), \
        slim.arg_scope([slim.max_pool2d],
                       stride=2, padding='SAME'):
-    net = slim.conv2d(net, 100, kernel_size=[7, 7], stride=1)
-    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2)
-    net = slim.conv2d(net, 150, kernel_size=[5, 5], stride=1)
-    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2)
-    net = slim.conv2d(net, 200, kernel_size=[3, 3], stride=1)
-    net = slim.max_pool2d(net, kernel_size=[12, 8], stride=1)
+    net = slim.conv2d(net, 100, kernel_size=[7, 7])
+    net = slim.max_pool2d(net, kernel_size=[3, 3])
+    net = slim.conv2d(net, 150, kernel_size=[5, 5])
+    net = slim.max_pool2d(net, kernel_size=[3, 3])
+    net = slim.conv2d(net, 200, kernel_size=[3, 3])
+    net = tf.reduce_max(net, axis=[1,2], keepdims=True)
     net = slim.flatten(net)
   return net
 
@@ -31,8 +33,7 @@ def define_model(model_name=None, features=None, labels=None, num_classes=None, 
                    tf.GraphKeys.GLOBAL_STEP])
 
   with slim.arg_scope([slim.conv2d, slim.fully_connected],
-                      weights_initializer=tf.truncated_normal_initializer(stddev=1e-3),
-                      #weights_initializer=slim.initializers.xavier_initializer(),
+                      weights_initializer=tf.truncated_normal_initializer(stddev=hparams.weights_init_stddev),
                       biases_initializer=tf.zeros_initializer(),
                       activation_fn=tf.nn.relu,
                       trainable=training):
@@ -43,12 +44,22 @@ def define_model(model_name=None, features=None, labels=None, num_classes=None, 
     else:
       raise ValueError('Unknown model %s' % model)
 
-    logits = slim.fully_connected(embedding, num_classes)
-    prediction = tf.nn.softmax(logits)
+    logits = slim.fully_connected(embedding, num_classes, activation_fn=None)
+    if hparams.classifier == 'logistic':
+      prediction = tf.nn.sigmoid(logits)
+    elif hparams.classifier == 'softmax':
+      prediction = tf.nn.softmax(logits)
+    else:
+      raise ValueError('Bad classifier: %s' % classifier)
 
   if training:
-    xent = tf.nn.softmax_cross_entropy_with_logits_v2(
-        logits=logits, labels=labels)
+    if hparams.classifier == 'logistic':
+      xent = tf.nn.sigmoidcross_entropy_with_logits(
+          logits=logits, labels=labels)
+    elif hparams.classifier == 'softmax':
+      xent = tf.nn.softmax_cross_entropy_with_logits_v2(
+          logits=logits, labels=labels)
+
     loss = tf.reduce_mean(xent)
     tf.summary.scalar('loss', loss)
 

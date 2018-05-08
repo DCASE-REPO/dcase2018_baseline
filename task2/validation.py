@@ -1,8 +1,7 @@
-#!/usr/bin/env python
-
 import csv
 from collections import defaultdict
 import os
+import random
 import sys
 
 import numpy as np
@@ -30,13 +29,17 @@ def print_maps(ap_sums=None, ap_counts=None, class_map=None):
   m_ap = map_sum / map_count
   print("Overall MAP: %.4f" % m_ap)
 
-def eval(model_name=None, hparams=None, test_csv_path=None, test_clip_dir=None,
-         class_map_path=None, checkpoint_path=None):
+def validate(model_name=None, hparams=None, validation_csv_path=None, validation_clip_dir=None,
+             class_map_path=None, checkpoint_path=None):
+  print('\nValidation for model:{} with hparams:{} and class map:{}'.format(model_name, hparams, class_map_path))
+  print('Validation data: clip dir {} and labels {}'.format(validation_clip_dir, validation_csv_path))
+  print('Checkpoint: {}\n'.format(checkpoint_path))
+
   with tf.Graph().as_default():
     label_class_index_table, num_classes = input.get_class_map(class_map_path)
     csv_record = tf.placeholder(tf.string, [])
     features, labels = input.record_to_labeled_log_mel_examples(
-        csv_record, clip_dir=test_clip_dir, hparams=hparams,
+        csv_record, clip_dir=validation_clip_dir, hparams=hparams,
         label_class_index_table=label_class_index_table, num_classes=num_classes)
     global_step, prediction, _, _ = model.define_model(
         model_name=model_name, features=features, num_classes=num_classes,
@@ -48,8 +51,9 @@ def eval(model_name=None, hparams=None, test_csv_path=None, test_clip_dir=None,
       class_map = {int(row[0]): row[1] for row in csv.reader(open(class_map_path))}
       ap_counts = defaultdict(int)
       ap_sums = defaultdict(float)
-      test_records = open(test_csv_path).readlines()
-      for (i,record) in enumerate(test_records[1:]):
+      validation_records = open(validation_csv_path).readlines()[1:]
+      random.shuffle(validation_records)
+      for (i,record) in enumerate(validation_records):
         record = record.strip()
         actual, predicted = sess.run([labels, prediction], {csv_record: record})
 
@@ -57,7 +61,7 @@ def eval(model_name=None, hparams=None, test_csv_path=None, test_clip_dir=None,
         predicted = np.average(predicted, axis=0)
         predicted_classes = np.argsort(predicted)[::-1][:TOP_N]
         ap = avg_precision(actual=actual_class, predicted=predicted_classes)
-        print(actual_class, predicted_classes, ap)
+        print(class_map[actual_class], [class_map[index] for index in predicted_classes], ap)
 
         ap_counts[actual_class] += 1
         ap_sums[actual_class] += ap
@@ -67,30 +71,3 @@ def eval(model_name=None, hparams=None, test_csv_path=None, test_clip_dir=None,
         sys.stdout.flush()
 
       print_maps(ap_sums=ap_sums, ap_counts=ap_counts, class_map=class_map)
-
-
-if __name__ == '__main__':
-  dataset_root = '/usr/local/google/home/plakal/fsd12k/final/dataset'
-  test_csv_path = os.path.join(dataset_root, 'eval', 'dataset_test.csv')
-  test_clip_dir = os.path.join(dataset_root, 'eval', 'audio')
-  class_map_path = '/usr/local/google/home/plakal/fsd12k/baseline/class_map.csv'
-  model_name = 'cnn'
-  hparams = tf.contrib.training.HParams(
-      stft_window_seconds=0.025,
-      stft_hop_seconds=0.010,
-      mel_bands=64,
-      mel_min_hz=125,
-      mel_max_hz=7500,
-      mel_log_offset=0.001,
-      example_window_seconds=0.250,
-      example_hop_seconds=0.125,
-      batch_size=64,
-      nl=2,
-      nh=256,
-      lr=1e-5,
-      adam_eps=1e-8)
-  checkpoint_path = sys.argv[1]  # '/usr/local/google/home/plakal/fsd12k/baseline/train/model.ckpt-1001'
-
-  eval(model_name=model_name, hparams=hparams, test_csv_path=test_csv_path,
-        test_clip_dir=test_clip_dir, class_map_path=class_map_path,
-       checkpoint_path=checkpoint_path)

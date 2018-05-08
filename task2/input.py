@@ -1,4 +1,3 @@
-
 import functools
 import os
 
@@ -89,9 +88,9 @@ def train_input(train_csv_path=None, train_clip_dir=None, class_map_path=None, h
           hparams=hparams,
           label_class_index_table=label_class_index_table,
           num_classes=num_classes),
-      num_parallel_calls=1)
+      num_parallel_calls=4)
   dataset = dataset.apply(tf.contrib.data.unbatch())
-  dataset = dataset.shuffle(buffer_size=10000)
+  dataset = dataset.shuffle(buffer_size=20000)
   dataset = dataset.repeat(100)
   dataset = dataset.apply(tf.contrib.data.batch_and_drop_remainder(batch_size=hparams.batch_size))
   dataset = dataset.prefetch(10)
@@ -100,37 +99,3 @@ def train_input(train_csv_path=None, train_clip_dir=None, class_map_path=None, h
   features, labels = iterator.get_next()
 
   return features, labels, num_classes, iterator.initializer
-
-
-if __name__ == '__main__':
-  dataset_root = '/usr/local/google/home/plakal/fsd12k/final/dataset'
-  train_csv_path = os.path.join(dataset_root, 'dev', 'dataset_train.csv')
-  train_clip_dir = os.path.join(dataset_root, 'dev', 'audio')
-  class_map_path = '/usr/local/google/home/plakal/fsd12k/baseline/class_map.csv'
-  hparams = tf.contrib.training.HParams(
-      stft_window_seconds=0.025,
-      stft_hop_seconds=0.010,
-      mel_bands=64,
-      mel_min_hz=125,
-      mel_max_hz=7500,
-      mel_log_offset=0.001,
-      example_window_seconds=0.250,
-      example_hop_seconds=0.125,
-      batch_size=16)
-
-  with tf.Graph().as_default(), tf.Session() as sess:
-    features, labels, num_classes, input_init = train_input(
-        train_csv_path=train_csv_path, train_clip_dir=train_clip_dir, class_map_path=class_map_path,
-        hparams=hparams)
-    sess.run(tf.tables_initializer())
-    sess.run(input_init)
-    while True:
-      try:
-        features_data, labels_data = sess.run([features, labels])
-        print("features", features_data.shape)
-        print("labels", labels_data.shape)
-        print(features_data)
-        print(labels_data)
-      except tf.errors.OutOfRangeError:
-        print('read all files')
-        break
