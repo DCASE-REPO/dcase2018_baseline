@@ -100,3 +100,17 @@ ENV/
 # mypy
 .mypy_cache/
 .idea/
+
+# Task 1
+task1/datasets/
+task1/log/
+task1/system/
+
+# Task 4
+task4/dataset/
+task4/baseline/task4
+
+# Task 5
+task5/dataset_task5/
+task5/log/
+task5/output_task5

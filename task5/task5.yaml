@@ -1,0 +1,272 @@
+active_set: dev
+
+sets:
+  - set_id: dev # development dataset (folds)
+    general:
+      active_fold_list: [1,2,3,4]
+    dataset:
+      method: baseline_development
+    feature_processing_chain:
+      method: DCASE2018_Task5_baseline
+    data_processing_chain:
+      method: DCASE2018_Task5_baseline
+    learner:
+      method: DCASE2018_Task5_baseline
+
+  - set_id: train # development dataset (full) to be used on eval set
+    dataset:
+      method: baseline_challenge_train
+    feature_processing_chain:
+      method: DCASE2018_Task5_baseline
+    data_processing_chain:
+      method: DCASE2018_Task5_baseline
+    learner:
+      method: DCASE2018_Task5_baseline
+
+  - set_id: eval # challenge evaluation set
+    dataset:
+      method: baseline_challenge_eval # not yet available (release 30/06/2018)
+    feature_processing_chain:
+      method: DCASE2018_Task5_baseline
+    data_processing_chain:
+      method: DCASE2018_Task5_baseline
+    learner:
+      method: DCASE2018_Task5_baseline
+
+defaults:
+  flow:
+    feature_extraction: true
+    feature_normalization: true
+    learning: true
+    testing: true
+    evaluation: true
+
+  general:
+    overwrite: false # Overwrite previously stored data
+    eval_mode: false # challenge evaluation mode
+    active_fold_list: [1,2,3,4]
+
+  path:
+    dataset: dataset_task5/
+    log: log/
+    application:
+      base: output_task5/
+      feature_extractor: features
+      feature_normalizer: normalization
+      learner: learner
+      recognizer: recognizer
+
+  dataset:
+    method: baseline_development
+
+  dataset_method_parameters:
+    baseline_development:
+      dataset: DCASE2018_Task5_DevelopmentSet
+      evaluation_mode: folds
+    baseline_challenge_train:
+      dataset: DCASE2018_Task5_DevelopmentSet
+      evaluation_mode: full
+    baseline_challenge_eval:
+      dataset: DCASE2018_Task5_EvaluationSet
+      evaluation_mode: full
+
+  feature_extractor:
+    recipe: mel
+    win_length_seconds: 0.04
+    hop_length_seconds: 0.02
+    fs: 16000
+    channels: 4
+
+  feature_extractor_method_parameters:
+    mel:
+      spectrogram_type: magnitude
+      window_type: hamming_asymmetric
+      n_mels: 40
+      n_fft: 1024
+      fmin: 50
+      fmax: 8000
+      htk: false
+      normalize_mel_bands: false
+      logarithmic: true
+
+  feature_processing_chain:
+    method: DCASE2018_Task5_baseline
+
+  feature_processing_chain_method_parameters:
+    DCASE2018_Task5_baseline:
+      chain:
+        - processor_name: AudioReadingProcessor # read multi-channel audio
+        - processor_name: RepositoryFeatureExtractorProcessor # extract features based on 'feature_extractor'
+
+  data_processing_chain_method_parameters:
+    DCASE2018_Task5_baseline:
+      chain:
+        - processor_name: RepositoryFeatureReadingProcessor # read features into repository
+        - processor_name: RepositoryNormalizationProcessor # normalize features
+          init_parameters:
+            enable: true
+        - processor_name: RepositorySequencingProcessor # add dimension
+          init_parameters: # no sequencing
+            sequence_length: 501
+            hop_length: 501
+        - processor_name: RepositoryToMatrixProcessor # convert repo to matrix
+          init_parameters:
+            label: mel
+            expanded_dimension: first
+        - processor_name: DataShapingProcessor # rearrange dimensions to match keras model input
+          init_parameters:
+            axis_list:
+              - channel_axis
+              - sequence_axis
+              - data_axis
+              - time_axis
+
+  learner_method_parameters:
+    DCASE2018_Task5_baseline:
+      random_seed: 0
+      profile: deterministic
+      backend: tensorflow
+      validation_amount: 0.3
+
+      model:
+        constants:
+          CLASS_COUNT: 9
+
+          FEATURE_VECTOR_LENGTH: 40
+          INPUT_SEQUENCE_LENGTH: 501
+
+          CONVOLUTION_FILTER: 32
+          CONVOLUTION_INIT: he_normal
+          CONVOLUTION_BORDER_MODE: valid
+
+          CONVOLUTION_DATA_FORMAT: channels_first
+
+          CONVOLUTION_ACTIVATION: relu
+          CONVOLUTION_DROPOUT: 0.2
+
+          DENSE_UNITS: 64
+          DENSE_DROPOUT: 0.2
+
+        config:
+          # CNN layer 1
+          # ====================================
+          # Convolution layer
+          - class_name: Conv2D
+            config:
+              input_shape:
+                - 1 # channel_axis
+                - FEATURE_VECTOR_LENGTH # data_axis
+                - INPUT_SEQUENCE_LENGTH # time_axis
+              filters: CONVOLUTION_FILTER
+              kernel_size:
+                - FEATURE_VECTOR_LENGTH
+                - 5
+              strides:
+                - 1
+                - 1
+              padding: CONVOLUTION_BORDER_MODE
+              kernel_initializer: CONVOLUTION_INIT
+              data_format: CONVOLUTION_DATA_FORMAT
+
+          # Batch normalization
+          - class_name: BatchNormalization
+            config:
+              axis: 1 # data_axis
+
+          # Detection layer
+          - class_name: Activation
+            config:
+              activation: CONVOLUTION_ACTIVATION
+
+          # Pooling layer
+          - class_name: MaxPooling2D
+            config:
+              pool_size:
+                - 1
+                - 5
+              strides:
+                - 1
+                - 5
+              data_format: CONVOLUTION_DATA_FORMAT
+
+          # Drop out layer
+          - class_name: Dropout
+            config:
+              rate: CONVOLUTION_DROPOUT
+
+          # CNN layer 2
+          # ====================================
+          # Convolution layer
+          - class_name: Conv2D
+            config:
+              filters: CONVOLUTION_FILTER * 2
+              kernel_size:
+                - 1
+                - 3
+              strides:
+                - 1
+                - 1
+              padding: CONVOLUTION_BORDER_MODE
+              kernel_initializer: CONVOLUTION_INIT
+              data_format: CONVOLUTION_DATA_FORMAT
+
+          # Batch normalization
+          - class_name: BatchNormalization
+            config:
+              axis: 1 # data_axis
+
+          # Detection layer
+          - class_name: Activation
+            config:
+              activation: CONVOLUTION_ACTIVATION
+
+          # Pooling layer
+          - class_name: GlobalMaxPooling2D
+            config:
+              data_format: CONVOLUTION_DATA_FORMAT
+
+          # Drop out layer
+          - class_name: Dropout
+            config:
+              rate: CONVOLUTION_DROPOUT
+
+          # ====================================
+          # Fully connected layer
+          - class_name: Dense
+            config:
+              units: DENSE_UNITS
+              kernel_initializer: uniform
+              activation: relu
+
+          - class_name: Dropout
+            config:
+              rate: DENSE_DROPOUT
+
+          # ====================================
+          # Output layer
+          - class_name: Dense
+            config:
+              units: CLASS_COUNT
+              kernel_initializer: uniform
+              activation: softmax
+
+      compile:
+        loss: sparse_categorical_crossentropy
+        metrics:
+          - sparse_categorical_accuracy
+
+      optimizer:
+        class_name: Adam
+        config:
+          lr: 0.0001
+
+      fit:
+        epochs: 500
+        processing_interval: 10
+        batch_size: 256
+        shuffle: True
+        undersampling: uniform
+
+  recognizer:
+    fusion:
+      method: mean

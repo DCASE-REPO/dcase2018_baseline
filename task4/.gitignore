@@ -1,0 +1,20 @@
+# data related
+dataset/audio/
+dataset/download_data.log
+dataset/missing_files*
+
+# baseline output
+baseline/
+evaluation_setup/
+*.hash
+meta.txt
+item_access_error.log.csv
+task4.log
+
+# pycharm
+.idea/
+__pycache__/
+
+# notebooks
+.ipynb_checkpoints
+

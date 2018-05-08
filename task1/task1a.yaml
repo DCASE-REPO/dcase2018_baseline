@@ -1,0 +1,270 @@
+active_set: dcase2018_baseline
+
+sets:
+  # DCASE2018 baseline
+  # ================================
+  - set_id: dcase2018_baseline
+    description: DCASE2017 baseline / Development setup
+    dataset:
+      method: baseline_development
+
+  - set_id: dcase2018_baseline_eval
+    description: DCASE2017 baseline / Evaluation setup
+    path:
+      application:
+        feature_extractor: eval_features
+        recognizer: eval_recognizer
+
+    dataset:
+      method: baseline_evaluation
+
+  - set_id: dcase2018_baseline_leaderboard
+    description: DCASE2017 baseline / Leader board setup
+    path:
+      application:
+        feature_extractor: leaderboard_features
+        recognizer: leaderboard_recognizer
+
+    dataset:
+      method: baseline_leaderboard
+
+defaults:
+  flow:
+    feature_extraction: true
+    feature_normalization: true
+    learning: true
+    testing: true
+    evaluation: true
+
+  general:
+    overwrite: false                        # Overwrite previously stored data
+    active_fold_list: !!null                # List of active folds
+
+  path:
+    dataset: datasets/
+    log: log/
+    application:
+      base: system/task1a
+      feature_extractor: features
+      feature_normalizer: normalization
+      learner: learner
+      recognizer: recognizer
+      evaluator: evaluator
+
+  dataset:
+    method: baseline_development
+
+  dataset_method_parameters:
+    baseline_development:
+      dataset: TUTUrbanAcousticScenes_2018_DevelopmentSet
+      evaluation_mode: folds
+
+    baseline_evaluation:
+      dataset: TUTUrbanAcousticScenes_2018_EvaluationSet
+      evaluation_mode: full
+
+    baseline_leaderboard:
+      dataset: TUTUrbanAcousticScenes_2018_LeaderboardSet
+      evaluation_mode: full
+
+  feature_extractor:
+    method: mel
+    win_length_seconds: 0.04
+    hop_length_seconds: 0.02
+    fs: 48000
+
+  feature_extractor_method_parameters:
+    mel:
+      spectrogram_type: magnitude
+      window_type: hamming_asymmetric
+      n_mels: 40
+      n_fft: 2048
+      fmin: 0
+      fmax: 24000
+      htk: false
+      normalize_mel_bands: false
+
+  data_processing_chain:
+    method: sequencing_chain
+
+  data_processing_chain_method_parameters:
+    sequencing_chain:
+      chain:
+        - processor_name: dcase_util.processors.FeatureReadingProcessor
+
+        - processor_name: dcase_util.processors.NormalizationProcessor
+          init_parameters:
+            enable: true
+
+        - processor_name: dcase_util.processors.SequencingProcessor
+          init_parameters:
+            sequence_length: 500
+            hop_length: 500
+
+        - processor_name: dcase_util.processors.DataShapingProcessor
+          init_parameters:
+            axis_list:
+              - sequence_axis
+              - data_axis
+              - time_axis
+
+  meta_processing_chain:
+    method: one_hot
+
+  meta_processing_chain_method_parameters:
+    one_hot:
+      chain:
+        - processor_name: dcase_util.processors.OneHotEncodingProcessor
+
+  learner:
+    method: cnn
+
+  learner_method_parameters:
+    cnn:
+      random_seed: 0
+      keras_profile: cuda0_fast
+      backend: tensorflow
+
+      validation_set:
+        enable: true
+        validation_amount: 0.3
+        balancing_mode: identifier_two_level_hierarchy
+        seed: 0
+
+      data:
+        data_format: channels_last
+        target_format: single_target_per_sequence
+
+      generator:
+        enable: false
+
+      model:
+        constants:
+          CONVOLUTION_INIT: glorot_uniform
+          CONVOLUTION_KERNEL_SIZE: 7
+          CONVOLUTION_ACTIVATION: relu
+          CONVOLUTION_DROPOUT: 0.3
+          CONVOLUTION_BORDER_MODE: same
+
+          DATA_FORMAT: channels_last
+
+        config:
+          # CNN layer 1
+          # ====================================
+          # Convolution layer
+          - class_name: Conv2D
+            config:
+              input_shape:
+                - FEATURE_VECTOR_LENGTH   # data_axis
+                - INPUT_SEQUENCE_LENGTH   # time_axis
+                - 1                       # sequence_axis
+              filters: 32
+              kernel_size: CONVOLUTION_KERNEL_SIZE
+              padding: CONVOLUTION_BORDER_MODE
+              kernel_initializer: CONVOLUTION_INIT
+              data_format: DATA_FORMAT
+
+          # Batch normalization
+          - class_name: BatchNormalization
+            config:
+              axis: 1
+
+          # Detection layer
+          - class_name: Activation
+            config:
+              activation: CONVOLUTION_ACTIVATION
+
+          # Pooling layer
+          - class_name: MaxPooling2D
+            config:
+              pool_size:
+                - 5
+                - 5
+              data_format: DATA_FORMAT
+
+          # Drop out layer
+          - class_name: Dropout
+            config:
+              rate: CONVOLUTION_DROPOUT
+
+          # CNN layer 2
+          # ====================================
+          # Convolution layer
+          - class_name: Conv2D
+            config:
+              filters: 64
+              kernel_size: CONVOLUTION_KERNEL_SIZE
+              padding: CONVOLUTION_BORDER_MODE
+              kernel_initializer: CONVOLUTION_INIT
+              data_format: DATA_FORMAT
+
+          # Batch normalization
+          - class_name: BatchNormalization
+            config:
+              axis: 1
+
+          # Detection layer
+          - class_name: Activation
+            config:
+              activation: CONVOLUTION_ACTIVATION
+
+          # Pooling layer
+          - class_name: MaxPooling2D
+            config:
+              pool_size:
+                - 4
+                - 100
+              data_format: DATA_FORMAT
+
+          # Drop out layer
+          - class_name: Dropout
+            config:
+              rate: CONVOLUTION_DROPOUT
+
+          # Flatten
+          # ====================================
+          - class_name: Flatten
+
+          # Fully connected layer
+          # ====================================
+          - class_name: Dense
+            config:
+              units: 100
+              kernel_initializer: uniform
+              activation: relu
+
+          - class_name: Dropout
+            config:
+              rate: 0.3
+
+          # Output layer
+          # ====================================
+          - class_name: Dense
+            config:
+              units: CLASS_COUNT
+              kernel_initializer: uniform
+              activation: softmax
+
+      compile:
+        loss: categorical_crossentropy
+        metrics:
+          - categorical_accuracy
+
+      optimizer:
+        class_name: Adam
+
+      fit:
+        epochs: 200
+        batch_size: 16
+        shuffle: True
+
+      callbacks:
+        StasherCallback:
+          monitor: val_categorical_accuracy
+          initial_delay: 50
+
+  recognizer:
+    frame_binarization:
+      enable: true
+      threshold: 0.5
+      type: global_threshold
