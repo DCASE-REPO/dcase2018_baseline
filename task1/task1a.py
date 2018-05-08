@@ -1021,7 +1021,6 @@ def do_evaluation(db, folds, param, log, application_mode='default'):
 
     """
 
-    from statsmodels.stats import proportion
     all_results = []
     overall = []
 
