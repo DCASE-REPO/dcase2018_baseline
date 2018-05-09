@@ -1,12 +1,53 @@
 #!/usr/bin/env python
+"""Driver for DCASE 2018 Task 2 Baseline.
+
+Usage:
+
+- Download Kaggle data: train.csv, audio_train.zip, audio_test.zip. Unzip
+  zip files into audio_train/ and audio_test/ directories.
+
+- Prepare a hold-out validation set by moving some random fraction of rows
+  from train.csv into validation.csv.
+
+- Prepare class map:
+  $ make_class_map.py < /path/to/train.csv > /path/to/class_map.csv
+
+- Train a model with checkpoints in a new train_dir:
+  $ main.py --mode train \
+      --model cnn --class_map_path /path/to/class_map.csv \
+      --train_clip_dir /path/to/audio_train \
+      --train_csv_path /path/to/train.csv \
+      --train_dir /path/to/train_dir
+  To override default hyperparameters, also pass in the --hparams flag:
+      --hparams name=value,name=value,..
+  See parse_hparams() for default values of all hyperparameters.
+
+- Evaluate the trained model on the validation set with a particular model
+  checkpoint:
+  $ main.py --mode eval \
+      --model cnn --class_map_path /path/to/class_map.csv \
+      --eval_clip_dir /path/to/audio_train \
+      --eval_csv_path /path/to/validation.csv \
+      --checkpoint /path/to/train_dir/model.ckpt-<N>
+  (make sure to use the same hparams overrides as used in training)
+
+- Run inference on a trained model to produce predictions in the Kaggle
+  submission format in file predictions.csv:
+  $ main.py --mode inference \
+      --model cnn --class_map_path /path/to/class_map.csv \
+      --test_clip_dir /path/to/audio_test \
+      --checkpoint /path/to/train_dir/model.ckpt-<N> \
+      --predictions_csv_path /path/to/predictions.csv
+  (make sure to use the same hparams overrides as used in training)
+"""
 
 import argparse
 import sys
 import tensorflow as tf
 
+import evaluation
 import inference
 import train
-import validation
 
 def parse_flags():
   parser = argparse.ArgumentParser(description='DCASE 2018 Task 2 Baseline')
@@ -14,8 +55,8 @@ def parse_flags():
   # Flags common to all modes.
   all_modes_group = parser.add_argument_group('Flags common to all modes')
   all_modes_group.add_argument(
-      '--mode', type=str, choices=['train', 'validation', 'inference'], required=True,
-      help='Run one of training, validation, or inference.')
+      '--mode', type=str, choices=['train', 'eval', 'inference'], required=True,
+      help='Run one of training, evaluation, or inference.')
   all_modes_group.add_argument(
       '--model', type=str, choices=['cnn', 'mlp'], default='cnn', required=True,
       help='Name of a model architecture. Currently, one of "cnn" or "mlp".')
@@ -38,20 +79,20 @@ def parse_flags():
       '--train_dir', type=str, default='',
       help='Path to a directory which will hold model checkpoints and other outputs.')
 
-  # Flags common to validation and inference.
-  validation_inference_group = parser.add_argument_group('Flags for validation and inference')
-  validation_inference_group.add_argument(
+  # Flags common to evaluation and inference.
+  eval_inference_group = parser.add_argument_group('Flags for evaluaton and inference')
+  eval_inference_group.add_argument(
       '--checkpoint_path', type=str, default='',
-      help='Path to a model checkpoint to use for validation or inference.')
+      help='Path to a model checkpoint to use for evaluation or inference.')
 
-  # Flags for validation only.
-  validation_group = parser.add_argument_group('Flags for validation only')
-  validation_group.add_argument(
-      '--validation_clip_dir', type=str, default='',
-      help='Path to directory containing validation clips.')
-  validation_group.add_argument(
-      '--validation_csv_path', type=str, default='',
-      help='Path to CSV file containing validation clip filenames and labels.')
+  # Flags for evaluation only.
+  eval_group = parser.add_argument_group('Flags for evaluation only')
+  eval_group.add_argument(
+      '--eval_clip_dir', type=str, default='',
+      help='Path to directory containing evaluation clips.')
+  eval_group.add_argument(
+      '--eval_csv_path', type=str, default='',
+      help='Path to CSV file containing evaluation clip filenames and labels.')
 
   # Flags for inference only.
   inference_group = parser.add_argument_group('Flags for inference only')
@@ -71,10 +112,10 @@ def parse_flags():
       assert flags.train_csv_path, 'Must specify --train_csv_path'
       assert flags.train_dir, 'Must specify --train_dir'
 
-    elif flags.mode == 'validation':
+    elif flags.mode == 'eval':
       assert flags.checkpoint_path, 'Must specify --checkpoint_path'
-      assert flags.validation_clip_dir, 'Must specify --validation_clip_dir'
-      assert flags.validation_csv_path, 'Must specify --validation_csv_path'
+      assert flags.eval_clip_dir, 'Must specify --eval_clip_dir'
+      assert flags.eval_csv_path, 'Must specify --eval_csv_path'
 
     else:
       assert flags.mode == 'inference'
@@ -136,11 +177,11 @@ def main():
                 train_clip_dir=flags.train_clip_dir,
                 train_dir=flags.train_dir)
 
-  elif flags.mode == 'validation':
-    validation.validate(model_name=flags.model, hparams=hparams,
+  elif flags.mode == 'eval':
+    evaluation.evaluate(model_name=flags.model, hparams=hparams,
                         class_map_path=flags.class_map_path,
-                        validation_csv_path=flags.validation_csv_path,
-                        validation_clip_dir=flags.validation_clip_dir,
+                        eval_csv_path=flags.eval_csv_path,
+                        eval_clip_dir=flags.eval_clip_dir,
                         checkpoint_path=flags.checkpoint_path)
 
   else:
