@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Driver for DCASE 2018 Task 2 Baseline.
 
+See README.md in this directory for a more detailed description.
+
 Usage:
 
 - Download Kaggle data: train.csv, audio_train.zip, audio_test.zip. Unzip
@@ -13,8 +15,10 @@ Usage:
   $ make_class_map.py < /path/to/train.csv > /path/to/class_map.csv
 
 - Train a model with checkpoints in a new train_dir:
-  $ main.py --mode train \
-      --model cnn --class_map_path /path/to/class_map.csv \
+  $ main.py \
+      --mode train \
+      --model cnn \
+      --class_map_path /path/to/class_map.csv \
       --train_clip_dir /path/to/audio_train \
       --train_csv_path /path/to/train.csv \
       --train_dir /path/to/train_dir
@@ -24,8 +28,10 @@ Usage:
 
 - Evaluate the trained model on the validation set with a particular model
   checkpoint:
-  $ main.py --mode eval \
-      --model cnn --class_map_path /path/to/class_map.csv \
+  $ main.py \
+      --mode eval \
+      --model cnn \
+      --class_map_path /path/to/class_map.csv \
       --eval_clip_dir /path/to/audio_train \
       --eval_csv_path /path/to/validation.csv \
       --checkpoint /path/to/train_dir/model.ckpt-<N>
@@ -33,8 +39,10 @@ Usage:
 
 - Run inference on a trained model to produce predictions in the Kaggle
   submission format in file predictions.csv:
-  $ main.py --mode inference \
-      --model cnn --class_map_path /path/to/class_map.csv \
+  $ main.py \
+      --mode inference \
+      --model cnn \
+      --class_map_path /path/to/class_map.csv \
       --test_clip_dir /path/to/audio_test \
       --checkpoint /path/to/train_dir/model.ckpt-<N> \
       --predictions_csv_path /path/to/predictions.csv
@@ -140,7 +148,7 @@ def parse_hparams(flag_hparams):
       mel_bands=64,
       mel_min_hz=125,
       mel_max_hz=7500,
-      # log mel spectrogram = Log(mel-spectrogram + mel_log_offset)
+      # log mel spectrogram = log(mel-spectrogram + mel_log_offset)
       mel_log_offset=0.001,
       # Window and hop length used to frame the log mel spectrogram into
       # examples.
@@ -151,7 +159,7 @@ def parse_hparams(flag_hparams):
       # For the 'mlp' multi-layer perceptron, nl=# layers, nh=# units per layer.
       nl=2,
       nh=256,
-      # Standard-deviation of the normal distribution with mean 0 used to
+      # Standard deviation of the normal distribution with mean 0 used to
       # initialize the weights of the model. Biases are initialized to 0.
       weights_init_stddev=1e-3,
       # Learning rate.

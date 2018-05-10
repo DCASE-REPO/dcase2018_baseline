@@ -32,6 +32,7 @@ def clip_to_log_mel_examples(clip, clip_dir=None, hparams=None):
   waveform = clip_to_waveform(clip, clip_dir=clip_dir)
 
   # Convert waveform into spectrogram using a Short-Time Fourier Transform.
+  # Note that tf.contrib.signal.stft() uses a periodic Hann window by default.
   window_length_samples = int(round(SAMPLE_RATE * hparams.stft_window_seconds))
   hop_length_samples = int(round(SAMPLE_RATE * hparams.stft_hop_seconds))
   fft_length = 2 ** int(np.ceil(np.log(window_length_samples) / np.log(2.0)))

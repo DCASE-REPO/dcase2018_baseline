@@ -77,7 +77,7 @@ def define_model(model_name=None, features=None, labels=None, num_classes=None, 
   if training:
     # In training mode, also create loss and train op.
     if hparams.classifier == 'logistic':
-      xent = tf.nn.sigmoidcross_entropy_with_logits(
+      xent = tf.nn.sigmoid_cross_entropy_with_logits(
           logits=logits, labels=labels)
     elif hparams.classifier == 'softmax':
       xent = tf.nn.softmax_cross_entropy_with_logits_v2(
