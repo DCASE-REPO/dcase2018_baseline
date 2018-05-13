@@ -1037,7 +1037,11 @@ def do_evaluation(db, folds, param, log, application_mode='default'):
             reference_scene_list[item_id]['file'] = item.filename
 
         estimated_scene_list = dcase_util.containers.MetaDataContainer().load(
-            filename=fold_results_filename
+            filename=fold_results_filename,
+            file_format=dcase_util.utils.FileFormat.CSV,
+            fields=['filename', 'scene_label'],
+            csv_header=False,
+            delimiter='\t'
         )
 
         for item_id, item in enumerate(estimated_scene_list):

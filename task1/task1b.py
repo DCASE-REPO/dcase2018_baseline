@@ -798,7 +798,11 @@ def do_evaluation(db, folds, param, log, application_mode='default'):
         item['file'] = item.filename
 
     estimated_scene_list_ = dcase_util.containers.MetaDataContainer().load(
-        filename=fold_results_filename
+        filename=fold_results_filename,
+        file_format=dcase_util.utils.FileFormat.CSV,
+        fields=['filename', 'scene_label'],
+        csv_header=False,
+        delimiter='\t'
     )
     for item_id, item in enumerate(estimated_scene_list_):
         item['source_label'] = os.path.splitext(os.path.split(item.filename)[-1])[0].split('-')[-1]
