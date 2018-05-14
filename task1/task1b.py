@@ -48,6 +48,20 @@ def main(argv):
     # parameters where injected from command line.
     param.process()
 
+    if args.dataset_path:
+        # Download only dataset if requested
+
+        # Make sure given path exists
+        dcase_util.utils.Path().create(
+            paths=args.dataset_path
+        )
+        # Get dataset and initialize
+        dcase_util.datasets.dataset_factory(
+            dataset_class_name=param.get_path('dataset.parameters.dataset'),
+            data_path=args.dataset_path,
+        ).initialize().log()
+        sys.exit(0)
+
     if args.parameter_set:
         # Check parameter set ids given as program arguments
         parameters_sets = args.parameter_set.split(',')
@@ -798,7 +812,11 @@ def do_evaluation(db, folds, param, log, application_mode='default'):
         item['file'] = item.filename
 
     estimated_scene_list_ = dcase_util.containers.MetaDataContainer().load(
-        filename=fold_results_filename
+        filename=fold_results_filename,
+        file_format=dcase_util.utils.FileFormat.CSV,
+        fields=['filename', 'scene_label'],
+        csv_header=False,
+        delimiter='\t'
     )
     for item_id, item in enumerate(estimated_scene_list_):
         item['source_label'] = os.path.splitext(os.path.split(item.filename)[-1])[0].split('-')[-1]

@@ -158,17 +158,6 @@ def handle_application_arguments(param, application_title='', version=''):
                 param_[section] = {}
 
         param_.log()
-
-    if args.dataset_path:
-        # Make sure given path exists
-        dcase_util.utils.Path().create(
-            paths=args.dataset_path
-        )
-        # Get dataset and initialize
-        dcase_util.datasets.dataset_factory(
-            dataset_class_name=param.get_path('dataset.parameters.dataset'),
-            data_path=args.dataset_path,
-        ).initialize().log()
         sys.exit(0)
 
     return args

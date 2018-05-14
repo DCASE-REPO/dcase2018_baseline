@@ -1,3 +1,4 @@
+"""Input pipeline for DCASE 2018 Task 2 Baseline models."""
 
 import functools
 import os
@@ -8,20 +9,30 @@ import tensorflow as tf
 
 from tensorflow.contrib.framework.python.ops import audio_ops as tf_audio
 
+# All input clips use a 44.1 kHz sample rate.
 SAMPLE_RATE = 44100
 
 def clip_to_waveform(clip, clip_dir=None):
+  """Decodes a WAV clip into a waveform tensor."""
+  # Decode the WAV-format clip into a waveform tensor where
+  # the values lie in [-1, +1].
   clip_path = tf.string_join([clip_dir, clip], separator=os.sep)
   clip_data = tf.read_file(clip_path)
   waveform, sr = tf_audio.decode_wav(clip_data)
+  # Assert that the clip has the expected sample rate.
   check_sr = tf.assert_equal(sr, SAMPLE_RATE)
+  # and that it is mono.
   check_channels = tf.assert_equal(tf.shape(waveform)[1], 1)
   with tf.control_dependencies([tf.group(check_sr, check_channels)]):
     return tf.squeeze(waveform)
 
 def clip_to_log_mel_examples(clip, clip_dir=None, hparams=None):
+  """Decodes a WAV clip into a batch of log mel spectrum examples."""
+  # Decode WAV clip into waveform tensor.
   waveform = clip_to_waveform(clip, clip_dir=clip_dir)
 
+  # Convert waveform into spectrogram using a Short-Time Fourier Transform.
+  # Note that tf.contrib.signal.stft() uses a periodic Hann window by default.
   window_length_samples = int(round(SAMPLE_RATE * hparams.stft_window_seconds))
   hop_length_samples = int(round(SAMPLE_RATE * hparams.stft_hop_seconds))
   fft_length = 2 ** int(np.ceil(np.log(window_length_samples) / np.log(2.0)))
@@ -31,6 +42,7 @@ def clip_to_log_mel_examples(clip, clip_dir=None, hparams=None):
       frame_step=hop_length_samples,
       fft_length=fft_length))
 
+  # Convert spectrogram into log mel spectrogram.
   num_spectrogram_bins = fft_length // 2 + 1
   linear_to_mel_weight_matrix = tf.contrib.signal.linear_to_mel_weight_matrix(
      num_mel_bins=hparams.mel_bands,
@@ -41,6 +53,7 @@ def clip_to_log_mel_examples(clip, clip_dir=None, hparams=None):
   mel_spectrogram = tf.matmul(magnitude_spectrogram, linear_to_mel_weight_matrix)
   log_mel_spectrogram = tf.log(mel_spectrogram + hparams.mel_log_offset)
 
+  # Frame log mel spectrogram into examples.
   spectrogram_sr = 1 / hparams.stft_hop_seconds
   example_window_length_samples = int(round(spectrogram_sr * hparams.example_window_seconds))
   example_hop_length_samples = int(round(spectrogram_sr * hparams.example_hop_seconds))
@@ -54,6 +67,19 @@ def clip_to_log_mel_examples(clip, clip_dir=None, hparams=None):
 
 def record_to_labeled_log_mel_examples(csv_record, clip_dir=None, hparams=None,
                                        label_class_index_table=None, num_classes=None):
+  """Creates a batch of log mel spectrum examples from a training record.
+
+  Args:
+    csv_record: a line from the train.csv file downloaded from Kaggle.
+    clip_dir: path to a directory containing clips referenced by csv_record.
+    hparams: tf.contrib.training.HParams object containing model hyperparameters.
+    label_class_index_table: a lookup table that represents the class map.
+    num_classes: number of classes in the class map.
+
+  Returns:
+    features: Tensor containing a batch of log mel spectrum examples.
+    labels: Tensor containing corresponding labels in 1-hot format.
+  """
   [clip, label, _] = tf.decode_csv(csv_record, record_defaults=[[''],[''],[0]])
 
   features = clip_to_log_mel_examples(clip, clip_dir=clip_dir, hparams=hparams)
@@ -66,6 +92,7 @@ def record_to_labeled_log_mel_examples(csv_record, clip_dir=None, hparams=None,
   return features, labels
 
 def get_class_map(class_map_path):
+  """Constructs a class label lookup table from a class map."""
   label_class_index_table = tf.contrib.lookup.HashTable(
       tf.contrib.lookup.TextFileInitializer(
           filename=class_map_path,
@@ -77,11 +104,30 @@ def get_class_map(class_map_path):
   return label_class_index_table, num_classes
 
 def train_input(train_csv_path=None, train_clip_dir=None, class_map_path=None, hparams=None):
+  """Creates training input pipeline.
+
+  Args:
+    train_csv_path: path to the train.csv file provided by Kaggle.
+    train_clip_dir: path to the unzipped audio_train/ directory from the
+        audio_train.zip file provided by Kaggle.
+    class_map_path: path to the class map prepared from the training data.
+    hparams: tf.contrib.training.HParams object containing model hyperparameters
+
+  Returns:
+    features: Tensor containing a batch of log mel spectrum examples.
+    labels: Tensor containing corresponding labels in 1-hot format.
+    num_classes: number of classes.
+    iter_init: an initializer op for the iterator that provides features and
+       labels, to be run before the input pipeline is read.
+  """
   label_class_index_table, num_classes = get_class_map(class_map_path)
 
   dataset = tf.data.TextLineDataset(train_csv_path)
+  # Skip the header.
   dataset = dataset.skip(1)
+  # Shuffle the list of clips. 10K is big enough to cover all clips.
   dataset = dataset.shuffle(buffer_size=10000)
+  # Map each clip to a batch of framed log mel spectrum examples.
   dataset = dataset.map(
       map_func=functools.partial(
           record_to_labeled_log_mel_examples,
@@ -89,48 +135,23 @@ def train_input(train_csv_path=None, train_clip_dir=None, class_map_path=None, h
           hparams=hparams,
           label_class_index_table=label_class_index_table,
           num_classes=num_classes),
-      num_parallel_calls=1)
+      # 4 is empirically chosen to use 4 logical CPU cores. Adjust as
+      # needed if more or less resources are available.
+      num_parallel_calls=4)
+  # Unbatch so that we have a dataset of individual examples that we can then
+  # shuffle for training. 20K should be enough to allow shuffling across a
+  # few hundred clips which are already in random order.
   dataset = dataset.apply(tf.contrib.data.unbatch())
-  dataset = dataset.shuffle(buffer_size=10000)
+  dataset = dataset.shuffle(buffer_size=20000)
+  # Run until we have completed 100 epochs of the training set.
   dataset = dataset.repeat(100)
+  # Batch examples.
   dataset = dataset.apply(tf.contrib.data.batch_and_drop_remainder(batch_size=hparams.batch_size))
+  # Let the input pipeline run a few batches ahead so that the model is
+  # never starved of data.
   dataset = dataset.prefetch(10)
 
   iterator = dataset.make_initializable_iterator()
   features, labels = iterator.get_next()
 
   return features, labels, num_classes, iterator.initializer
-
-
-if __name__ == '__main__':
-  dataset_root = '/usr/local/google/home/plakal/fsd12k/final/dataset'
-  train_csv_path = os.path.join(dataset_root, 'dev', 'dataset_train.csv')
-  train_clip_dir = os.path.join(dataset_root, 'dev', 'audio')
-  class_map_path = '/usr/local/google/home/plakal/fsd12k/baseline/class_map.csv'
-  hparams = tf.contrib.training.HParams(
-      stft_window_seconds=0.025,
-      stft_hop_seconds=0.010,
-      mel_bands=64,
-      mel_min_hz=125,
-      mel_max_hz=7500,
-      mel_log_offset=0.001,
-      example_window_seconds=0.250,
-      example_hop_seconds=0.125,
-      batch_size=16)
-
-  with tf.Graph().as_default(), tf.Session() as sess:
-    features, labels, num_classes, input_init = train_input(
-        train_csv_path=train_csv_path, train_clip_dir=train_clip_dir, class_map_path=class_map_path,
-        hparams=hparams)
-    sess.run(tf.tables_initializer())
-    sess.run(input_init)
-    while True:
-      try:
-        features_data, labels_data = sess.run([features, labels])
-        print("features", features_data.shape)
-        print("labels", labels_data.shape)
-        print(features_data)
-        print(labels_data)
-      except tf.errors.OutOfRangeError:
-        print('read all files')
-        break
