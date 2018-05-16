@@ -1,4 +1,4 @@
-dcase_util>=0.2.1
+dcase_util>=0.2.2
 keras>=2.1.5
 tensorflow>=1.4.0
 sed_eval>=0.2.0
