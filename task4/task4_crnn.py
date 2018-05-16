@@ -909,6 +909,7 @@ def data_generator(items, feature_path, many_hot_encoder, feature_processing_cha
             if batch_size == 1:
                 batch_X = input_data.reshape((1,) + input_data.shape)
                 batch_y = targets.reshape((1,) + targets.shape)
+                yield batch_X, batch_y
             else:
                 batch_X.append(input_data)
                 batch_y.append(targets)
