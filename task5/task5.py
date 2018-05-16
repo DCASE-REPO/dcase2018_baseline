@@ -22,7 +22,7 @@ import sklearn.utils as skutils
 from sklearn.metrics import f1_score
 from sklearn.preprocessing import LabelEncoder
 
-__version_info__ = ('1', '0', '1')
+__version_info__ = ('1', '0', '2')
 __version__ = '.'.join(__version_info__)
 
 # =====================================================================
@@ -521,7 +521,7 @@ def do_testing(db, folds, param, log, overwrite=False):
 
             # Get label encoder
             label2num_enc = LabelEncoder()
-			scene_labels_num = label2num_enc.fit_transform(db.scene_labels())
+            scene_labels_num = label2num_enc.fit_transform(db.scene_labels())
 
             # Initialize results container
             res = dcase_util.containers.MetaDataContainer(

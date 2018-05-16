@@ -1,4 +1,4 @@
-dcase_util>=0.2.2
+dcase_util>=0.2.3
 keras>=2.1.5
 tensorflow>=1.4
 numpy>=1.9.2

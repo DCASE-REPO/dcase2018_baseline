@@ -21,7 +21,7 @@ Getting started
 
 Important note
 ==============
-Make sure you have dcase\_util v0.2.2 (or higher) installed (release 16/05/2018). An error in the Task 5 dataset was reported [here](https://groups.google.com/forum/#!topic/dcase-discussions/iDh4M-RMy8U). Earlier versions of dcase_util refer to an older repository. A quick fix is available [here](https://www.dropbox.com/s/309gqi58549v7yu/task5_dataset_fix_20180514.zip?dl=0) in case you prefer not to download the entire dataset again.
+Make sure you have dcase\_util v0.2.3 (or higher) installed (release 16/05/2018). An error in the Task 5 dataset was reported [here](https://groups.google.com/forum/#!topic/dcase-discussions/iDh4M-RMy8U). Earlier versions of dcase_util refer to an older repository. A quick fix is available [here](https://www.dropbox.com/s/309gqi58549v7yu/task5_dataset_fix_20180514.zip?dl=0) in case you prefer not to download the entire dataset again.
 
 
 Baseline system description
@@ -136,6 +136,10 @@ When running in development mode (`eval_mode = False`) the baseline system provi
 
 Changelog
 =========
+#### 1.0.2 / 2018-04-16
+
+* changed requirements of dcase_util to match newest release of dataset
+
 #### 1.0.1 / 2018-04-16
 
 * Added validation split saving for additional safety
