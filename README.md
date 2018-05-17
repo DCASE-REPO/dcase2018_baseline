@@ -19,6 +19,14 @@ The task evaluates systems for general-purpose audio tagging with an increased n
 
 More information about this task can be found in [task description page](http://dcase.community/challenge2018/task-general-purpose-audio-tagging).
 
+### Task 3
+
+The task is to design a system that, given a short audio recording, returns a binary decision for the presence/absence of bird sound (bird sound of any kind).
+
+Please note: the Task 3 baseline is included from a separate git repository. It is included here as a "submodule". If you are using git to download the files, you can run `git submodule init && git submodule update`. Otherwise, you can simply download the Task 3 baseline separately from https://github.com/DCASE-REPO/bulbul_bird_detection_dcase2018
+
+More information about this task can be found in [task description page](http://dcase.community/challenge2018/task-bird-audio-detection).
+
 ### Task 4 - Large-scale weakly labeled semi-supervised sound event detection in domestic environments
 
 The task evaluates systems for the large-scale detection of sound events using weakly labeled data. The challenge is to explore the possibility to exploit a large amount of unbalanced and unlabelled training data together with a small weakly annotated training set to improve system performance. The data are YouTube video excerpts focusing on domestic context which could be used for example in ambient assisted living applications. The domain was chosen due to the scientific challenges (wide variety of sounds, time-localized events...) and potential industrial applications.
