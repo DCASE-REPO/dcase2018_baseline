@@ -1,0 +1,4 @@
+[submodule "task3"]
+	path = task3
+	url = https://github.com/DCASE-REPO/bulbul_bird_detection_dcase2018.git
+	branch = badch2018
