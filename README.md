@@ -19,7 +19,7 @@ The task evaluates systems for general-purpose audio tagging with an increased n
 
 More information about this task can be found in [task description page](http://dcase.community/challenge2018/task-general-purpose-audio-tagging).
 
-### Task 3
+### Task 3 - Bird audio detection
 
 The task is to design a system that, given a short audio recording, returns a binary decision for the presence/absence of bird sound (bird sound of any kind).
 
