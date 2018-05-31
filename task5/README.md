@@ -87,45 +87,45 @@ When running in development mode (`eval_mode = False`) the baseline system provi
     <tbody>
         <tr>
             <td>Absence</td>
-            <td>86.14 %</td>
+            <td>85.41 %</td>
         </tr>
         <tr>
             <td>Cooking</td>
-            <td>94.26 %</td>
+            <td>95.14 %</td>
         </tr>
         <tr>
             <td>Dishwashing</td>
-            <td>73.74 %</td>
+            <td>76.73 %</td>
         </tr>
         <tr>
             <td>Eating</td>
-            <td>85.47 %</td>
+            <td>83.64 %</td>
         </tr>
         <tr>
             <td>Other</td>
-            <td>40.41 %</td>
+            <td>44.76 %</td>
         </tr>  
         <tr>
             <td>Social activity</td>
-            <td>94.36 %</td>
+            <td>93.92 %</td>
         </tr>
         <tr>
             <td>Vacuum cleaning</td>
-            <td>99.16 %</td>
+            <td>99.31 %</td>
         </tr> 
         <tr>
             <td>Watching TV</td>
-            <td>99.52 %</td>
+            <td>99.59 %</td>
         </tr>
         <tr>
             <td>Working</td>
-            <td>81.62 %</td>
+            <td>82.03 %</td>
         </tr>                                                                 
     </tbody>
     <tfoot>
         <tr>
             <td><strong>Macro-averaged F1-score</strong></td>
-            <td><strong>83.85 %</strong></td>
+            <td><strong>84.50 %</strong></td>
         </tr>
     </tfoot>
 </table>
@@ -136,6 +136,10 @@ When running in development mode (`eval_mode = False`) the baseline system provi
 
 Changelog
 =========
+#### 1.0.2 / 2018-04-16
+
+* adjusted results (due to reported error)
+
 #### 1.0.2 / 2018-04-16
 
 * changed requirements of dcase_util to match newest release of dataset
