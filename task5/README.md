@@ -21,7 +21,7 @@ Getting started
 
 Important note
 ==============
-Make sure you have dcase\_util v0.2.3 (or higher) installed (release 16/05/2018). An error in the Task 5 dataset was reported [here](https://groups.google.com/forum/#!topic/dcase-discussions/iDh4M-RMy8U). Earlier versions of dcase_util refer to an older repository. A quick fix is available [here](https://www.dropbox.com/s/309gqi58549v7yu/task5_dataset_fix_20180514.zip?dl=0) in case you prefer not to download the entire dataset again.
+Make sure you have dcase\_util v0.2.4 (or higher) installed (release 16/05/2018). An error in the Task 5 dataset was reported [here](https://groups.google.com/forum/#!topic/dcase-discussions/iDh4M-RMy8U). Earlier versions of dcase_util refer to an older repository. A quick fix is available [here](https://www.dropbox.com/s/309gqi58549v7yu/task5_dataset_fix_20180514.zip?dl=0) in case you prefer not to download the entire dataset again.
 
 
 Baseline system description
@@ -42,7 +42,7 @@ The file `task5.py` contains the main code of the baseline system and is largely
     ├── README.md               # This file
     └── requirements.txt        # External module dependencies 
 
-By default, the code is set to `development mode`. In development mode results are acquired in 4-fold cross-validation based fashion. This mode is used for developing your system. The code provides an option to change to `evaluation mode` which then uses the full [development dataset](https://zenodo.org/record/1247102) to train a model to be tested on the evaluation dataset. The option for `evaluation mode` is available in the configuration file (`eval_mode: True/False`) but it is not yet fully supported. Once the evaluation set is released, we'll release an extension of this baseline.
+By default, the code is set to `development mode`. In development mode results are acquired in 4-fold cross-validation based fashion. This mode is used for developing your system. The code provides an option to change to `evaluation mode` which then uses the full [development dataset](https://zenodo.org/record/1247102) to train a model to be tested on the evaluation dataset. The option for `evaluation mode` is available in the configuration file (`eval_mode: True/False`).
 
 
 ### Feature/Machine Learning parameters
@@ -136,7 +136,11 @@ When running in development mode (`eval_mode = False`) the baseline system provi
 
 Changelog
 =========
-#### 1.0.2 / 2018-04-16
+#### 2.0.0 / 2018-06-29
+
+* Added evaluation mode
+
+#### 1.0.3 / 2018-04-16
 
 * adjusted results (due to reported error)
 

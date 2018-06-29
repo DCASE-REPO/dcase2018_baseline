@@ -1,5 +1,5 @@
 import dcase_util
-import numpy
+import os
 
 # =====================================================================
 # Function: get labels and feature filenames from train/val wav files
@@ -97,3 +97,71 @@ def get_processing_chain(param,fold_stats_filename=None,chain_type = 'data_proce
                 init_parameters=init_parameters,
             )
     return processing_chain
+
+# =====================================================================
+# Function: Save testing output in correct format for evaluation
+# =====================================================================
+def save_system_output(db, folds, param, log, output_file, mode='dcase'):
+    """Save system output
+
+    Parameters
+    ----------
+    db : dcase_util.dataset.Dataset
+        Dataset
+
+    folds : list
+        List of active folds
+
+    param : dcase_util.containers.DCASEAppParameterContainer
+        Application parameters
+
+    log : dcase_util.ui.FancyLogger
+        Logging interface
+
+    output_file : str
+
+    mode : str
+        Output mode, possible values ['dcase', 'leaderboard']
+        Default value 'dcase'
+
+    Returns
+    -------
+    nothing
+
+    """
+
+    # Initialize results container
+    all_res = dcase_util.containers.MetaDataContainer(
+        filename=output_file
+    )
+
+    # Loop over all cross-validation folds and collect results
+    for fold in folds:
+        # Get results filename
+        fold_results_filename = os.path.join(
+            param.get_path('path.application.recognizer'),
+            'res_fold_{fold}.txt'.format(fold=fold)
+        )
+
+        if os.path.isfile(fold_results_filename):
+            # Load results container
+            res = dcase_util.containers.MetaDataContainer().load(
+                filename=fold_results_filename
+            )
+            all_res += res
+
+        else:
+            raise ValueError(
+                'Results output file does not exists [{fold_results_filename}]'.format(
+                    fold_results_filename=fold_results_filename
+                )
+            )
+
+    # Convert paths to relative to the dataset root
+    for item in all_res:
+        item.filename = os.path.relpath(os.path.abspath(item.filename),db.local_path)
+
+    all_res.save(csv_header=False)
+
+    log.line('System output saved to [{output_file}]'.format(output_file=output_file), indent=2)
+    log.line()
