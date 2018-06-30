@@ -68,7 +68,7 @@ The subtask specific baseline system is implemented in file `task1b.py`.
 
 The cross-validation setup provided with the *TUT Urban Acoustic Scenes Mobile 2018 Development dataset* is used to evaluate the performance of the baseline system. Material from device A (high-quality) is used for training, and testing is done with material from all three devices. This highlights the problem of mismatched recording devices. Results are calculated the same way as for subtask A, with mean and standard deviation of the performance from 10 independent trials show in the results table.
 
-| Scene class        | Device B             | Device C             | Average (B/C)        |      | Device A             |
+| Scene class        | Device B             | Device C             | Average (B,C)        |      | Device A             |
 | ------------------ | -------------------- | -------------------- | -------------------- | ---- |--------------------- |
 | Airport            | 68.9 %               | 76.1 %               | 72.5 %               |      | 73.4 %               |
 | Bus                | 70.6 %               | 86.1 %               | 78.3 %               |      | 56.7 %               |
