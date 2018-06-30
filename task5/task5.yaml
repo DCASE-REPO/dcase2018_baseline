@@ -25,7 +25,7 @@ sets:
 
   - set_id: eval # challenge evaluation set
     dataset:
-      method: baseline_challenge_eval # not yet available (release 30/06/2018)
+      method: baseline_challenge_eval # available from DCASE util v0.2.4 (release 30/06/2018)
     feature_processing_chain:
       method: DCASE2018_Task5_baseline
     data_processing_chain:
@@ -43,14 +43,14 @@ defaults:
 
   general:
     overwrite: false # Overwrite previously stored data
-    eval_mode: false # challenge evaluation mode
+    eval_mode: true # challenge evaluation mode
     active_fold_list: [1,2,3,4]
 
   path:
-    dataset: dataset_task5/
+    dataset: dataset/
     log: log/
     application:
-      base: output_task5/
+      base: output/
       feature_extractor: features
       feature_normalizer: normalization
       learner: learner

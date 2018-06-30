@@ -17,12 +17,12 @@ import argparse
 import textwrap
 import pickle
 
-from task5_utils import get_processing_chain, get_label_from_filename
+from task5_utils import get_processing_chain, get_label_from_filename, save_system_output
 import sklearn.utils as skutils
 from sklearn.metrics import f1_score
 from sklearn.preprocessing import LabelEncoder
 
-__version_info__ = ('1', '0', '2')
+__version_info__ = ('2', '0', '0')
 __version__ = '.'.join(__version_info__)
 
 # =====================================================================
@@ -564,7 +564,6 @@ def do_testing(db, folds, param, log, overwrite=False):
 
             # Save results container
             res.save()
-
 # =====================================================================
 # Function: Scoring
 # =====================================================================
@@ -655,13 +654,13 @@ def main(argv):
             'LEARNER': ['FEATURE_PROCESSING_CHAIN','DATA_PROCESSING_CHAIN', 'LEARNER'],
             'RECOGNIZER': ['FEATURE_PROCESSING_CHAIN','DATA_PROCESSING_CHAIN', 'LEARNER', 'RECOGNIZER'],
         }
-    ).process()
+    )
 
     # Handle application arguments
     args = handle_application_arguments(param)
 
-    # Get overwrite flag
-    overwrite = param.get_path('general.overwrite')
+    # Process parameters
+    param.process()
 
     # Make sure all system paths exists
     dcase_util.utils.Path().create(
@@ -701,7 +700,7 @@ def main(argv):
             db=db,
             param=param,
             log=log,
-            overwrite=overwrite
+            overwrite=param.get_path('general.overwrite')
         )
         log.foot()
 
@@ -713,7 +712,7 @@ def main(argv):
             folds=active_folds,
             param=param,
             log=log,
-            overwrite=overwrite
+            overwrite=param.get_path('general.overwrite')
         )
         log.foot()
 
@@ -739,7 +738,7 @@ def main(argv):
                 folds=active_folds,
                 param=param,
                 log=log,
-                overwrite=overwrite
+                overwrite=param.get_path('general.overwrite')
             )
             log.foot()
 
@@ -755,8 +754,62 @@ def main(argv):
             log.foot()
 
     elif args.mode == 'eval' or param.get_path('general.eval_mode'):
-        # System evaluation in 'eval mode'
-        print('Evaluation mode not yet supported. Will be released together with the evaluation set of Task 5.')
+        # updata param set
+        param.update_parameter_set('eval')
+
+        # Get eval dataset and initialize
+        db_eval = dcase_util.datasets.dataset_factory(
+            dataset_class_name=param.get_path('dataset.parameters.dataset'),
+            data_path=param.get_path('path.dataset'),
+        ).initialize()
+
+        # Get active folds
+        active_folds = db_eval.folds(
+            mode='full'
+        )
+
+        if param.get_path('flow.feature_extraction'):
+            # Feature extraction stage for eval mode
+            log.section_header('Feature Extraction')
+            do_feature_extraction(
+                db=db_eval,
+                param=param,
+                log=log,
+                overwrite=param.get_path('general.overwrite')
+            )
+            log.foot()
+
+        if param.get_path('flow.testing'):
+            # Testing stage for eval mode
+            log.section_header('Testing')
+            do_testing(
+                db=db_eval,
+                folds=active_folds,
+                param=param,
+                log=log,
+                overwrite=param.get_path('general.overwrite')
+            )
+            log.foot()
+
+            save_system_output(
+                db=db_eval,
+                folds=active_folds,
+                param=param,
+                log=log,
+                output_file='eval_output.txt',
+                mode='dcase'
+            )
+
+        if db_eval.reference_data_present and param.get_path('flow.evaluation'):
+            # Evaluation stage for eval mode
+            log.section_header('Evaluating')
+            do_evaluation(
+                db=db_eval,
+                folds=active_folds,
+                param=param,
+                log=log
+            )
+            log.foot()
 
 if __name__ == "__main__":
     try:
