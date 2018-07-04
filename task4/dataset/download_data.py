@@ -220,4 +220,9 @@ if __name__ == "__main__":
     result_dir = os.path.join("audio", "train", "unlabel_out_of_domain")
     download(train_unlabel_out_of_domain, result_dir, n_jobs=N_JOBS, chunk_size=CHUNK_SIZE)
 
+    log.line("Eval")
+    train_unlabel_out_of_domain = os.path.join("metadata", "eval", "eval.csv")
+    result_dir = os.path.join("audio", "eval")
+    download(train_unlabel_out_of_domain, result_dir, n_jobs=N_JOBS, chunk_size=CHUNK_SIZE)
+
     log.foot()
