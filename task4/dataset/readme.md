@@ -2,7 +2,8 @@
 
 This repository contain a python script to retrieve audio files for DCASE2018 from youtube, the list of audio files and the annotations verified by the task organizers. For a detailed description of the task please visit [task 4 offcial page](http://dcase.community//challenge2018/task-large-scale-weakly-labeled-semi-supervised-sound-event-detection)
 
-# Note to participants (July 6th): A small amount of files were present both in the training set and in the test set.
+# Note to participants (July 6th): 
+**A small amount of files were present both in the training set and in the test set.**
 
 This would not have a major impact on the system performance but it could introduce a small bias while evaluating the test set performance. Therefore, we decided to remove those files from the test set and replace them by other files from the same classes in order to keep a similar distribution.
 
