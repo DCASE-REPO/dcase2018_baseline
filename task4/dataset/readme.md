@@ -2,13 +2,15 @@
 
 This repository contain a python script to retrieve audio files for DCASE2018 from youtube, the list of audio files and the annotations verified by the task organizers. For a detailed description of the task please visit [task 4 offcial page](http://dcase.community//challenge2018/task-large-scale-weakly-labeled-semi-supervised-sound-event-detection)
 
-<div class="alert alert-success">
-  <p><strong>Note to participants (July 6th): A small amount of files were present both in the training set and in the test set.</strong></p>
-  <p> This would not have a major impact on the system performance but it could introduce a small bias while evaluating the test set performance. Therefore, we decided to remove those files from the test set and replace them by other files from the same classes in order to keep a similar distribution.</p>
-  <p>The new test set is available on task 4 depository together with the list of files to remove from the test set. In order to avoid any confusion, we simply removed the csv file corresponding to the old test set.</p>
-  <p>Note that this will not affect the training you have done until now as the files were removed from the test set that should not have been used for training. This will affect only marginally the performance reported on the test set (and only for the classes `speech`, `dog` and `cat`). This will also not have any impact on the evaluation. Therefore, you can decide to keep running with the old test set. We would just ask you to mention it in your technical report (otherwise we’ll consider you used the latest version of the test set).</p>
-</div>
+    <div class="alert alert-success">
+      <p><strong>Note to participants (July 6th): A small amount of files were present both in the training set and in the test set.</strong></p>
+      <p> This would not have a major impact on the system performance but it could introduce a small bias while evaluating the test set performance. Therefore, we decided to remove those files from the test set and replace them by other files from the same classes in order to keep a similar distribution.</p>
+      <p>The new test set is available on task 4 depository together with the list of files to remove from the test set. In order to avoid any confusion, we simply removed the csv file corresponding to the old test set.</p>
+      <p>Note that this will not affect the training you have done until now as the files were removed from the test set that should not have been used for training. This will affect only marginally the performance reported on the test set (and only for the classes `speech`, `dog` and `cat`). This will also not have any impact on the evaluation. Therefore, you can decide to keep running with the old test set. We would just ask you to mention it in your technical report (otherwise we’ll consider you used the latest version of the test set).</p>
+    </div>
+
 # Commits:
+
     - July, 6, 2018, 12:22 Updating test.csv and adding file_to_remove.csv to fix overlapping between test and training.
     - April, 9, 2018, 16:36 Removing Y7LDMN0g-M_k_370.000_380.000.wav file in unlabel_out_of_domain.csv. This file is empty.
 
