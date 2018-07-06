@@ -6,7 +6,7 @@ This repository contain a python script to retrieve audio files for DCASE2018 fr
 
       This would not have a major impact on the system performance but it could introduce a small bias while evaluating the test set performance. Therefore, we decided to remove those files from the test set and replace them by other files from the same classes in order to keep a similar distribution.
       The new test set is available on task 4 depository together with the list of files to remove from the test set. In order to avoid any confusion, we simply removed the csv file corresponding to the old test set.
-      <p>Note that this will not affect the training you have done until now as the files were removed from the test set that should not have been used for training. This will affect only marginally the performance reported on the test set (and only for the classes `speech`, `dog` and `cat`). This will also not have any impact on the evaluation. Therefore, you can decide to keep running with the old test set. We would just ask you to mention it in your technical report (otherwise we’ll consider you used the latest version of the test set).
+      Note that this will not affect the training you have done until now as the files were removed from the test set that should not have been used for training. This will affect only marginally the performance reported on the test set (and only for the classes `speech`, `dog` and `cat`). This will also not have any impact on the evaluation. Therefore, you can decide to keep running with the old test set. We would just ask you to mention it in your technical report (otherwise we’ll consider you used the latest version of the test set).
 
 
 # Commits:
