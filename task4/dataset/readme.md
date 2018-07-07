@@ -2,14 +2,16 @@
 
 This repository contain a python script to retrieve audio files for DCASE2018 from youtube, the list of audio files and the annotations verified by the task organizers. For a detailed description of the task please visit [task 4 offcial page](http://dcase.community//challenge2018/task-large-scale-weakly-labeled-semi-supervised-sound-event-detection)
 
-# Note to participants (July 6th): 
-**A small amount of files were present both in the training set and in the test set.**
+# Note to participants (July 6th):
+**A small amount of files were present both in the training set and in the test set from the development data.**
 
-This would not have a major impact on the system performance but it could introduce a small bias while evaluating the test set performance. Therefore, we decided to remove those files from the test set and replace them by other files from the same classes in order to keep a similar distribution.
+This would not have a major impact on the system performance but it could introduce a small bias while evaluating the test set performance. Therefore, we decided to remove those files from the test set and replace them by new annotated  files from the same classes in order to keep a similar distribution.
 
 The new test set is available on task 4 depository together with the list of files to remove from the test set. In order to avoid any confusion, we simply removed the csv file corresponding to the old test set.
 
-Note that this will not affect the training you have done until now as the files were removed from the test set that should not have been used for training. This will affect only marginally the performance reported on the test set (and only for the classes `speech`, `dog` and `cat`). This will also not have any impact on the evaluation. Therefore, you can decide to keep running with the old test set. We would just ask you to mention it in your technical report (otherwise we’ll consider you used the latest version of the test set).
+Note that this will not affect the training of the models you have done until now, as the files were removed from the test set and not from the training set. This will affect only marginally the performance reported on the test set (and only for the classes `speech`, `dog` and `cat`).
+
+This will also not have any impact on the evaluation data. Therefore for the development of your methods, you can decide to keep running with the old test set. We already have updated the performance of the baseline on the challenge's webpage. We kindly ask you to report the results using the new test set, and not the old test set in the submitted technical reports.
 
 
 # Commits:
