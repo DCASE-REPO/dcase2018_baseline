@@ -4,12 +4,12 @@ sets:
   # DCASE2018 baseline
   # ================================
   - set_id: dcase2018_baseline
-    description: DCASE2017 baseline / Development setup
+    description: DCASE2018 baseline / Development setup
     dataset:
       method: baseline_development
 
   - set_id: dcase2018_baseline_eval
-    description: DCASE2017 baseline / Evaluation setup
+    description: DCASE2018 baseline / Evaluation setup
     path:
       application:
         feature_extractor: eval_features
@@ -19,7 +19,7 @@ sets:
       method: baseline_evaluation
 
   - set_id: dcase2018_baseline_leaderboard
-    description: DCASE2017 baseline / Leader board setup
+    description: DCASE2018 baseline / Leader board setup
     path:
       application:
         feature_extractor: leaderboard_features
