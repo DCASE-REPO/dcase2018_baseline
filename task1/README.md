@@ -24,7 +24,7 @@ Participants are strongly encouraged to build their own systems by extending the
 If participants plan to publish their code to the DCASE community after the challenge, building their approach on the baseline system will make their code more accessible to the community. DCASE organizers strongly encourage participants to share their code in any form after the challenge.
 
 Subtasks
-=========
+========
 
 ### Subtask A - Acoustic Scene Classification
 
@@ -201,9 +201,7 @@ In development mode, the development dataset is used with the provided cross-val
 
 Usage example: `python task1a.py` or `python task1a.py -m dev`
 
-**Challenge mode** - `eval`
-
-**Note:** This operation mode does not work yet as evaluation dataset has not been published yet. 
+**Challenge mode** - `eval` 
 
 In challenge mode, the full development dataset (including training and test subsets) is used for learning, and a second dataset, evaluation dataset, is used for testing. The system system outputs are generated based on the evaluation dataset. If ground truth is available for the evaluation dataset, the output is also evaluated. This mode is designed to be used for generating the DCASE challenge submission, running the system on the evaluation dataset for generating the system outputs for the submission file. 
 
