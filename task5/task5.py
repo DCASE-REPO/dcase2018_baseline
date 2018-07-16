@@ -22,7 +22,7 @@ import sklearn.utils as skutils
 from sklearn.metrics import f1_score
 from sklearn.preprocessing import LabelEncoder
 
-__version_info__ = ('2', '0', '0')
+__version_info__ = ('2', '0', '1')
 __version__ = '.'.join(__version_info__)
 
 # =====================================================================
@@ -450,13 +450,16 @@ def do_learning(db, folds, param, log, overwrite=False):
 # =====================================================================
 # Function: Testing
 # =====================================================================
-def do_testing(db, folds, param, log, overwrite=False):
+def do_testing(db, db_train, folds, param, log, overwrite=False):
     """Testing stage
 
     Parameters
     ----------
     db : dcase_util.dataset.Dataset
-        Dataset
+        Dataset (test)
+
+    db_train : dcase_util.dataset.Dataset
+        Dataset (train)
 
     folds : list of int
         List of active folds
@@ -521,7 +524,7 @@ def do_testing(db, folds, param, log, overwrite=False):
 
             # Get label encoder
             label2num_enc = LabelEncoder()
-            scene_labels_num = label2num_enc.fit_transform(db.scene_labels())
+            scene_labels_num = label2num_enc.fit_transform(db_train.scene_labels())
 
             # Initialize results container
             res = dcase_util.containers.MetaDataContainer(
@@ -735,6 +738,7 @@ def main(argv):
             log.section_header('Testing')
             do_testing(
                 db=db,
+                db_train=db,
                 folds=active_folds,
                 param=param,
                 log=log,
@@ -784,6 +788,7 @@ def main(argv):
             log.section_header('Testing')
             do_testing(
                 db=db_eval,
+                db_train=db,
                 folds=active_folds,
                 param=param,
                 log=log,

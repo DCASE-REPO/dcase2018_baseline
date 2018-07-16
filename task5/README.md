@@ -136,6 +136,10 @@ When running in development mode (`eval_mode = False`) the baseline system provi
 
 Changelog
 =========
+#### 2.0.1 / 2018-07-16
+
+* Fixed bug when no labels available in eval set
+
 #### 2.0.0 / 2018-06-29
 
 * Added evaluation mode
