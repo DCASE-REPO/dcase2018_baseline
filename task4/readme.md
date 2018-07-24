@@ -85,7 +85,7 @@ The baseline system is a semi supervised approach:
     *Note: labels are used at frames level but annotations are at clip level, so if an event is present in the 10 sec, 
     all frames contain this label during training*
     - Predict strong test labels (`test/`) *Note: predict an event with an onset and offset*
- - Evaluate the model between test annotations and second pass predictions (Metric is [event based](http://tut-arg.github.io/sed_eval/sound_event.html#event-based))
+ - Evaluate the model between test annotations and second pass predictions (Metric is (macro-average) [event based](http://tut-arg.github.io/sed_eval/sound_event.html#event-based))
 
 System performance (event-based measures with a 200ms collar on onsets and a 200ms / 20% of the events length collar on offsets):
  <table class="table table-striped">
