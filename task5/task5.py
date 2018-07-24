@@ -22,7 +22,7 @@ import sklearn.utils as skutils
 from sklearn.metrics import f1_score
 from sklearn.preprocessing import LabelEncoder
 
-__version_info__ = ('2', '0', '1')
+__version_info__ = ('3', '0', '0')
 __version__ = '.'.join(__version_info__)
 
 # =====================================================================

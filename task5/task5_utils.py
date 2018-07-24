@@ -82,7 +82,7 @@ def get_processing_chain(param,fold_stats_filename=None,chain_type = 'data_proce
         init_parameters = chain.get('init_parameters', {})
 
         # Inject parameters
-        if processor_name == 'NormalizationProcessor':
+        if processor_name == 'RepositoryNormalizationProcessor':
             init_parameters['filename'] = fold_stats_filename
 
         if processor_name == 'AudioReadingProcessor':

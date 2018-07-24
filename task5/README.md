@@ -23,6 +23,9 @@ Important note
 ==============
 Make sure you have dcase\_util v0.2.4 (or higher) installed (release 16/05/2018). An error in the Task 5 dataset was reported [here](https://groups.google.com/forum/#!topic/dcase-discussions/iDh4M-RMy8U). Earlier versions of dcase_util refer to an older repository. A quick fix is available [here](https://www.dropbox.com/s/309gqi58549v7yu/task5_dataset_fix_20180514.zip?dl=0) in case you prefer not to download the entire dataset again.
 
+Important note 2
+==============
+A bug was reported on baselines prior to version 3.0.0. Features were not normalized at the data processing chain (when reading in the data at the data generator).
 
 Baseline system description
 ==================
@@ -136,6 +139,10 @@ When running in development mode (`eval_mode = False`) the baseline system provi
 
 Changelog
 =========
+#### 3.0.0 / 2018-07-24
+
+* Fixed bug of normalization not being performed in the data processing chain
+
 #### 2.0.1 / 2018-07-16
 
 * Fixed bug when no labels available in eval set
