@@ -106,7 +106,11 @@ YOTsn73eqbfc_10.000_20.000.wav	0.163	0.665	Alarm_bell_ringing
 
 The first column, `YOTsn73eqbfc_10.000_20.000.wav`, is the name of the audio file downloaded from Youtube, the second column `0.163` is the onset time in seconds, the third column `0.665` is the offset time in seconds and the last column, `Alarm_bell_ringing` corresponds to the class of the sound event.
 
+## Citation
 
+If you are using this dataset please consider citing [the following paper](https://hal.inria.fr/hal-01850270v1): 
+
+>  R. Serizel, N. Turpault, H. Eghbal-Zadeh, A. P. Shah . “Large-Scale Weakly Labeled Semi-Supervised Sound Event Detection in Domestic Environments ”. Submitted to *DCASE2018 Workshop*, 2018.
 
 ## Authors
 
