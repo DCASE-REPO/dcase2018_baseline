@@ -110,6 +110,12 @@ System performance (event-based measures with a 200ms collar on onsets and a 200
 
 **Note:** The performance might not be exactly reproducible on a GPU based system. However, it runs in around 8 hours on a single Nvidia Geforce 1080 Ti GPU.
 
+## Citation
+
+If you are using this source code please consider citing [the following paper](https://hal.inria.fr/hal-01850270v1): 
+
+>  R. Serizel, N. Turpault, H. Eghbal-Zadeh, A. P. Shah . “Large-Scale Weakly Labeled Semi-Supervised Sound Event Detection in Domestic Environments ”. Submitted to *DCASE2018 Workshop*, 2018.
+
 ## Authors
 
 Nicolas Turpault, Romain Serizel, Hamid Eghbal-Zadeh, Ankit Parag Shah, 2018 -- Present
