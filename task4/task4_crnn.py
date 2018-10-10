@@ -11,13 +11,14 @@ import numpy
 import os
 import random
 import pickle
+import pandas
 
 import tensorflow as tf
 from keras import backend as K
 import keras
 
 #from evaluation_measures import get_f_measure_by_class, event_based_evaluation, segment_based_evaluation
-from evaluation_measures import get_f_measure_by_class, event_based_evaluation
+from evaluation_measures import get_f_measure_by_class, event_based_evaluation, event_based_evaluation_df
 from Dataset_dcase2018 import DCASE2018_Task4_DevelopmentSet
 
 dcase_util.utils.setup_logging(logging_file='task4.log')
@@ -36,8 +37,9 @@ def main(parameters):
     log.title('DCASE2018 / Task4')
 
     overwirte_preprocessing = False
-    overwrite_learning = False
+    overwrite_learning = True
     overwrite_testing = True
+    overwrite_evaluation = True
 
     # =====================================================================
     # Parameters
@@ -85,7 +87,6 @@ def main(parameters):
     # Dataset
     # =====================================================================
     # Get dataset and initialize it
-
     db = DCASE2018_Task4_DevelopmentSet(included_content_types=['all'],
                                         local_path="",
                                         data_path=param.get_path('path.dataset'),
@@ -93,7 +94,8 @@ def main(parameters):
                                             os.path.join("dataset", "audio", "train", "weak"),
                                             os.path.join("dataset", "audio", "train", "unlabel_in_domain"),
                                             os.path.join("dataset", "audio", "train", "unlabel_out_of_domain"),
-                                            os.path.join("dataset", "audio", "test")
+                                            os.path.join("dataset", "audio", "test"),
+                                            os.path.join("dataset", "audio", "eval")
                                         ]
                                         ).initialize()
 
@@ -101,7 +103,6 @@ def main(parameters):
     folds = db.folds(
         mode=param.get_path('dataset.parameters.evaluation_mode')
     )
-
     active_fold_list = param.get_path('dataset.parameters.fold_list')
     if active_fold_list:
         folds = list(set(folds).intersection(active_fold_list))
@@ -466,15 +467,15 @@ def main(parameters):
         log.section_header('Predict 1st pass, add labels to unlabel_in_domain data')
 
         # Get results filename
-        fold_results_filename = os.path.join(
+        eval_predictions_filename = os.path.join(
             param.get_path('path.application.recognizer'),
             'pred_weak_fold_{fold}.txt'.format(fold=fold)
         )
 
-        if not os.path.isfile(fold_results_filename) or overwrite_testing:
+        if not os.path.isfile(eval_predictions_filename) or overwrite_testing:
             # Initialize results container
-            res = dcase_util.containers.MetaDataContainer(
-                filename=fold_results_filename
+            eval_cont = dcase_util.containers.MetaDataContainer(
+                filename=eval_predictions_filename
             )
 
             # Load model if not yet loaded
@@ -517,7 +518,7 @@ def main(parameters):
                 )
 
                 # Store result into results container
-                res.append(
+                eval_cont.append(
                     {
                         'filename': item.filename,
                         'tags': estimated_tags[0]
@@ -525,7 +526,7 @@ def main(parameters):
                 )
 
             # Save results container
-            res.save()
+            eval_cont.save()
 
         log.foot()
 
@@ -721,34 +722,34 @@ def main(parameters):
     # =====================================================================
     # Testing stage, get strong annotations
     # =====================================================================
-
+    fold = 2
     if param.get_path('flow.testing'):
         log.section_header('Testing')
 
         # Get results filename
-        fold_results_filename = os.path.join(
+        test_predictions_filename = os.path.join(
             param.get_path('path.application.recognizer'),
-            'res_fold_{fold}.txt'.format(fold=2)
+            'test_fold_{fold}.csv'.format(fold=2)
         )
 
         # Get model filename
         fold2_model_filename = os.path.join(
             param.get_path('path.application.learner'),
-            'model_fold_{fold}.h5'.format(fold=2)
+            'res_fold_{fold}.h5'.format(fold=fold)
         )
 
-        if not os.path.isfile(fold_results_filename) or overwrite_testing:
+        if not os.path.isfile(test_predictions_filename) or overwrite_testing:
             # Load model if not yet loaded
             if not keras_model_second_pass:
-                keras_model_second_pass = keras.models.load_model(fold2_model_filename)
+                keras_model_second_pass = keras.models.load_model("/home/nturpault/model_fold_2.h5")
 
             # Initialize results container
-            res = dcase_util.containers.MetaDataContainer(
-                filename=fold_results_filename
+            test_meta = dcase_util.containers.MetaDataContainer(
+                filename=test_predictions_filename
             )
 
             # Loop through all test files from the current cross-validation fold
-            for item in db.test(fold=2):
+            for item in db.test(fold=fold):
                 # Get feature filename
                 feature_filename = dcase_util.utils.Path(
                     path=item.filename
@@ -808,7 +809,7 @@ def main(parameters):
                     for [onset, offset] in estimated_events:
                         hop_length_seconds = param.get_path('feature_extractor.hop_length_seconds')
                         # Store result into results container, convert frames to seconds
-                        res.append(
+                        test_meta.append(
                             {
                                 'filename': item.filename,
                                 'event_label': label,
@@ -818,34 +819,143 @@ def main(parameters):
                         )
 
             # Save results container
-            res.save()
+            test_meta.save()
+
+        stats_filename = os.path.join(param.get_path('path.application.recognizer'), 'test_results.txt')
+
+        if not os.path.isfile(stats_filename) or overwrite_testing:
+            # test data used to evaluate the system
+            reference_event_list = db.test(fold=fold)
+            # Evaluation done on dataframes
+            reference_df = pandas.DataFrame(reference_event_list)
+
+            # predictions done during the step test before
+            eval_df = pandas.read_csv(test_predictions_filename, sep="\t", header=0)
+
+            # Calculate the metric
+            event_based_metric = event_based_evaluation_df(reference_df, eval_df)
+
+            with open(stats_filename, "w") as stats_file:
+                stats_file.write(event_based_metric.__str__())
+
+            log.line(event_based_metric.__str__(), indent=4)
+
         log.foot()
 
     # =====================================================================
-    # Evaluation stage, get results
+    # Evaluation stage, predict evaluation labels
     # =====================================================================
 
     if param.get_path('flow.evaluation'):
         log.section_header('Evaluation')
 
-        stats_filename = os.path.join(param.get_path('path.application.recognizer'), 'evaluation.txt')
+        # Get results filename
+        eval_predictions_filename = os.path.join(
+            param.get_path('path.application.recognizer'),
+            'eval_results.csv'
+        )
 
-        if not os.path.isfile(stats_filename) or overwrite_testing:
-            fold_results_filename = os.path.join(
-                param.get_path('path.application.recognizer'),
-                'res_fold_{fold}.txt'.format(fold=fold)
+        # Get model filename
+        fold2_model_filename = os.path.join(
+            param.get_path('path.application.learner'),
+            'model_fold_{fold}.h5'.format(fold=2)
+        )
+
+        if not os.path.isfile(eval_predictions_filename) or overwrite_evaluation:
+            # Load model if not yet loaded
+            if not keras_model_second_pass:
+                keras_model_second_pass = keras.models.load_model(fold2_model_filename)
+
+            # Initialize results container
+            eval_meta = dcase_util.containers.MetaDataContainer(
+                filename=eval_predictions_filename
             )
 
-            # test data used to evaluate the system
-            reference_event_list = db.eval(fold=fold)
+            # Loop through all test files from the current cross-validation fold
+            for item in db.eval(fold=2):
+                # Get feature filename
+                feature_filename = dcase_util.utils.Path(
+                    path=item.filename
+                ).modify(
+                    path_base=param.get_path('path.application.feature_extractor'),
+                    filename_extension='.cpickle'
+                )
 
-            # predictions done during the step test before
-            estimated_event_list = dcase_util.containers.MetaDataContainer().load(
-                filename=fold_results_filename
-            )
+                # Get features array
+                features = feature_processing_chain.process(
+                    filename=feature_filename
+                )
 
+                input_data = features.data.reshape(features.shape[:-1]).T  # (500, 64)
+                # Create a batch with only one file
+                input_data = input_data.reshape((1,) + input_data.shape)  # (1, 500, 64)
+
+                # Get network output for strong data
+                probabilities = keras_model_second_pass.predict(input_data)
+
+                # only one file in the batch
+                probabilities = probabilities[0]
+
+                if param.get_path('recognizer.frame_binarization.enable'):
+                    # Binarization of the network output
+                    frame_decisions = dcase_util.data.ProbabilityEncoder().binarization(
+                        probabilities=probabilities,
+                        binarization_type=param.get_path('recognizer.frame_binarization.binarization_type'),
+                        threshold=param.get_path('recognizer.frame_binarization.threshold'),
+                        time_axis=0
+                    )
+                else:
+                    frame_decisions = dcase_util.data.ProbabilityEncoder().binarization(
+                        probabilities=probabilities,
+                        binarization_type="global_threshold",
+                        threshold=0.5,
+                        time_axis=0
+                    )
+
+                decision_encoder = dcase_util.data.DecisionEncoder(
+                    label_list=db.tags()
+                )
+
+                if param.get_path('recognizer.process_activity.enable'):
+                    frame_decisions = decision_encoder.process_activity(
+                        frame_decisions,
+                        window_length=param.get_path('recognizer.process_activity.window_length'),
+                        time_axis=0)
+
+                for i, label in enumerate(db.tags()):
+
+                    # given a list of ones, give the onset and offset in frames
+                    estimated_events = decision_encoder.find_contiguous_regions(
+                        activity_array=frame_decisions[:, i]
+                    )
+
+                    for [onset, offset] in estimated_events:
+                        hop_length_seconds = param.get_path('feature_extractor.hop_length_seconds')
+                        # Store result into results container, convert frames to seconds
+                        eval_meta.append(
+                            {
+                                'filename': item.filename,
+                                'event_label': label,
+                                'onset': onset * hop_length_seconds,
+                                'offset': offset * hop_length_seconds
+                            }
+                        )
+
+            # Save results container
+            eval_meta.save()
+        log.line("Find the eval predictions in : " + eval_predictions_filename)
+        
+        
+        stats_filename = os.path.join(param.get_path('path.application.recognizer'), 'eval_results.txt')
+
+        if not os.path.isfile(stats_filename) or overwrite_evaluation:
+            # get the two dataframes with events and evaluate the system
+            reference_event_list = db.eval(fold=2)
+            reference_df = pandas.DataFrame(reference_event_list)
+
+            eval_df = pandas.read_csv(eval_predictions_filename, sep="\t", header=0)
             # Calculate the metric
-            event_based_metric = event_based_evaluation(reference_event_list, estimated_event_list)
+            event_based_metric = event_based_evaluation_df(reference_df, eval_df)
 
             with open(stats_filename, "w") as stats_file:
                 stats_file.write(event_based_metric.__str__())

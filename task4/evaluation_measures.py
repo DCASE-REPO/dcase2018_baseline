@@ -9,7 +9,7 @@
 from dcase_util.data import ProbabilityEncoder
 import sed_eval
 import numpy
-
+import pandas as pd
 
 def get_f_measure_by_class(keras_model, nb_tags, generator, steps, thresholds=None):
     """ get f measure for each class given a model and a generator of data (X, y)
@@ -102,6 +102,7 @@ def event_based_evaluation(reference_event_list, estimated_event_list):
         event_label_list=reference_event_list.unique_event_labels,
         t_collar=0.200,
         percentage_of_length=0.2,
+        empty_system_output_handling='zero_score'
     )
 
     for file in evaluated_files:
@@ -121,4 +122,54 @@ def event_based_evaluation(reference_event_list, estimated_event_list):
             estimated_event_list=estimated_event_list_for_current_file
         )
 
+    return event_based_metric
+
+
+def get_event_list_current_file(df, fname):
+    """
+    Get list of events for a given filename
+    :param df: pd.DataFrame, the dataframe to search on
+    :param fname: the filename to extract the value from the dataframe
+    :return: list of events (dictionaries) for the given filename
+    """
+    event_file = df[df["filename"].str.contains(fname)]
+    if len(event_file) == 1:
+        if pd.isna(event_file["event_label"].iloc[0]):
+            event_list_for_current_file = [{"filename": fname}]
+        else:
+            event_list_for_current_file = event_file.to_dict('records')
+    else:
+        event_list_for_current_file = event_file.to_dict('records')
+
+    return event_list_for_current_file
+
+def event_based_evaluation_df(reference, estimated):
+    """
+    Calculate EventBasedMetric given a reference and estimated dataframe
+    :param reference: pd.DataFrame containing "filename" "onset" "offset" and "event_label" columns which describe the
+    reference events
+    :param estimated: pd.DataFrame containing "filename" "onset" "offset" and "event_label" columns which describe the
+    estimated events to be compared with reference
+    :return: sed_eval.sound_event.EventBasedMetrics with the scores
+    """
+    
+    evaluated_files = reference["filename"].unique()
+    classes = []
+    classes.extend(reference.event_label.dropna().unique())
+    classes.extend(estimated.event_label.dropna().unique())
+    event_based_metric = sed_eval.sound_event.EventBasedMetrics(
+        event_label_list=classes,
+        t_collar=0.200,
+        percentage_of_length=0.2,
+        empty_system_output_handling='zero_score'
+    )
+
+    for fname in evaluated_files:
+        reference_event_list_for_current_file = get_event_list_current_file(reference, fname)
+        estimated_event_list_for_current_file = get_event_list_current_file(estimated, fname)
+
+        event_based_metric.evaluate(
+            reference_event_list=reference_event_list_for_current_file,
+            estimated_event_list=estimated_event_list_for_current_file,
+        )
     return event_based_metric

@@ -2,6 +2,12 @@ active_set: dcase2018_baseline_development
 
 sets:
   - set_id: dcase2018_baseline_development
+    flow:
+      feature_extraction: true
+      feature_normalization: true
+      learning: true
+      testing: true
+      evaluation: true
     dataset:
       method: baseline_development
     learner:
@@ -22,10 +28,10 @@ sets:
   - set_id: dcase2018_baseline_challenge_test
     flow:
       feature_extraction: true
-      feature_normalization: false
+      feature_normalization: true
       learning: false
-      testing: true
-      evaluation: false
+      testing: false
+      evaluation: true
     dataset:
       method: baseline_challenge_test
     learner:

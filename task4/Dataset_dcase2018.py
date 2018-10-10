@@ -80,6 +80,10 @@ class DCASE2018_Task4_DevelopmentSet(AudioTaggingDataset):
                 'content_type': 'meta',
                 'filename': 'dataset/metadata/train/unlabel_out_of_domain.csv',
             },
+            {
+                'content_type': 'meta',
+                'filename': 'dataset/metadata/eval/eval.csv',
+            }
         ]
         super(DCASE2018_Task4_DevelopmentSet, self).__init__(**kwargs)
 
@@ -115,6 +119,8 @@ class DCASE2018_Task4_DevelopmentSet(AudioTaggingDataset):
                     base_filepath = os.path.splitext(package.get('filename').split('/')[-1])[0]
                     if 'train' in package.get('filename'):
                         result_audio_directory = os.path.join(self.local_path, 'dataset/audio/train', base_filepath)
+                    elif 'eval' in package.get('filename'):
+                        result_audio_directory = os.path.join(self.local_path, 'dataset/audio/eval')
                     else:
                         result_audio_directory = os.path.join(self.local_path, 'dataset/audio/test')
 
@@ -151,7 +157,6 @@ class DCASE2018_Task4_DevelopmentSet(AudioTaggingDataset):
             fold=2,
             file_extension='csv'
         )
-
         evaluate_filename = self.evaluation_setup_filename(
             setup_part='evaluate',
             fold=2,
@@ -230,8 +235,8 @@ class DCASE2018_Task4_DevelopmentSet(AudioTaggingDataset):
 
             train_meta_weak_fold2.save(filename=train_filename_fold2, csv_header=True)
 
-            # Evaluate meta is the groundtruth file with test annotations test.csv
-            evaluate_meta = MetaDataContainer()
+            # Test meta is the groundtruth file with test annotations test.csv
+            test_meta_strong_fold2 = MetaDataContainer()
             audio_path = 'dataset/audio/test'
             for item in MetaDataContainer().load(os.path.join(self.local_path, 'dataset/metadata/test/test.csv'),
                                                  csv_header=True):
@@ -247,18 +252,35 @@ class DCASE2018_Task4_DevelopmentSet(AudioTaggingDataset):
                     # Only collect items which exists
                     if 'audio' in self.included_content_types or 'all' in self.included_content_types:
                         if os.path.isfile(os.path.join(self.local_path, item.filename)):
+                            test_meta_strong_fold2.append(item)
+                    else:
+                        test_meta_strong_fold2.append(item)
+
+            test_meta_strong_fold2.save(filename=test_filename_fold2, csv_header=True, file_format="CSV")
+
+            # Evaluate meta is filenames of evaluation, labels will be predicted
+            evaluate_meta = MetaDataContainer()
+            audio_path = 'dataset/audio/eval'
+
+            for item in MetaDataContainer().load(os.path.join(self.local_path, 'dataset/metadata/eval/eval.csv'),
+                                                csv_header=True):
+                
+                if item.filename not in non_existing_videos:
+                    if not item.filename.endswith(self.default_audio_extension):
+                        item.filename = os.path.join(audio_path,
+                                                     os.path.splitext(item.filename)[0] +
+                                                     '.' + self.default_audio_extension)
+                    else:
+                        item.filename = Path(path=item.filename).modify(path_base=audio_path)
+
+                    # Only collect items which exists
+                    if 'audio' in self.included_content_types or 'all' in self.included_content_types:
+                        if os.path.isfile(os.path.join(self.local_path, item.filename)):
                             evaluate_meta.append(item)
                     else:
                         evaluate_meta.append(item)
 
-            evaluate_meta.save(filename=evaluate_filename, csv_header=True, file_format="CSV")
-
-            # Test meta is filenames of evaluation, labels will be predicted
-            test_meta_strong_fold2 = MetaDataContainer()
-            for filename in evaluate_meta.unique_files:
-                test_meta_strong_fold2.append(MetaDataItem({'filename': filename}))
-
-            test_meta_strong_fold2.save(filename=test_filename_fold2, csv_header=True, file_format="CSV")
+            evaluate_meta.save(filename=evaluate_filename, csv_header=False, file_format="TXT")
 
             # meta_data is the default meta container containing all files of the dataset
             meta_data = MetaDataContainer()
@@ -267,6 +289,7 @@ class DCASE2018_Task4_DevelopmentSet(AudioTaggingDataset):
             meta_data += MetaDataContainer().load(test_filename_fold1, csv_header=True, file_format="CSV")
 
             meta_data += MetaDataContainer().load(test_filename_fold2, csv_header=True, file_format="CSV")
+            meta_data += MetaDataContainer().load(evaluate_filename, file_format="TXT")
             # Save meta
             meta_data.save(filename=self.meta_file)
 
@@ -336,7 +359,7 @@ class DCASE2018_Task4_DevelopmentSet(AudioTaggingDataset):
 
             if os.path.isfile(evaluate_filename):
                 # Evaluation data for fold exists, load and process it
-                self.crossvalidation_data['evaluate'][fold] += MetaDataContainer(filename=evaluate_filename).load()
+                self.crossvalidation_data['evaluate'][fold] += MetaDataContainer(filename=evaluate_filename).load(file_format="TXT")
 
             # Process items
             for item in self.crossvalidation_data['train'][fold]:
