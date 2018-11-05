@@ -140,9 +140,9 @@ def handle_application_arguments(param, application_title='', version=''):
         # Override parameters from a file
         param.override(override=args.parameter_override)
 
+    overwrite = None
     if args.overwrite:
-        # Inject overwrite into parameters
-        param['general']['overwrite'] = True
+        overwrite = True
 
     if args.show_parameters:
         # Process parameters, and clean up parameters a bit for showing
@@ -160,7 +160,7 @@ def handle_application_arguments(param, application_title='', version=''):
         param_.log()
         sys.exit(0)
 
-    return args
+    return args, overwrite
 
 
 def save_system_output(db, folds, param, log, output_file, mode='dcase'):

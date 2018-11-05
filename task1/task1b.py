@@ -38,7 +38,7 @@ def main(argv):
     )
 
     # Handle application arguments
-    args = handle_application_arguments(
+    args, overwrite = handle_application_arguments(
         param=param,
         application_title='Task 1B: Acoustic Scene Classification with mismatched recording devices',
         version=__version__
@@ -82,7 +82,8 @@ def main(argv):
         application_mode = 'dev'
 
     # Get overwrite flag
-    overwrite = param.get_path('general.overwrite')
+    if overwrite is None:
+        overwrite = param.get_path('general.overwrite')
 
     # Make sure all system paths exists
     dcase_util.utils.Path().create(
