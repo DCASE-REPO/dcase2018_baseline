@@ -2,7 +2,14 @@
 
 This repository contain a python script to retrieve audio files for DCASE2018 from youtube, the list of audio files and the annotations verified by the task organizers. For a detailed description of the task please visit [task 4 offcial page](http://dcase.community//challenge2018/task-large-scale-weakly-labeled-semi-supervised-sound-event-detection)
 
-# Note to participants (July 6th):
+# Note to participants:
+## (August, 19th, 2019)
+- Some data were duplicated in test.csv (does not change results)
+
+- Some empty lines on eval.csv were not really empty due to a label extraction problem, see this [dcase discussion](https://groups.google.com/d/msgid/dcase-discussions/c97b5271-c439-4713-88eb-817918a5a340%40googlegroups.com) for more information.
+
+
+## (July, 6th 2018)
 **A small amount of files were present both in the training set and in the test set from the development data.**
 
 This would not have a major impact on the system performance but it could introduce a small bias while evaluating the test set performance. Therefore, we decided to remove those files from the test set and replace them by new annotated  files from the same classes in order to keep a similar distribution.
@@ -15,7 +22,7 @@ This will also not have any impact on the evaluation data. Therefore for the dev
 
 
 # Commits:
-
+    - August 19, 2019, Remove duplicates in test.csv and fix some empty lines in eval.csv (see notes above).
     - July, 6, 2018, 12:22 Updating test.csv and adding file_to_remove.csv to fix overlapping between test and training.
     - April, 9, 2018, 16:36 Removing Y7LDMN0g-M_k_370.000_380.000.wav file in unlabel_out_of_domain.csv. This file is empty.
 
